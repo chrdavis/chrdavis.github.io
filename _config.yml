@@ -16,7 +16,7 @@ minimal_mistakes_skin    : "dark" # "air", "aqua", "contrast", "dark", "dirt", "
 
 # Site Settings
 locale                   : "en-US"
-title                    : "Site Title"
+title                    : "Chris Davis' Blog"
 title_separator          : "-"
 name                     : "Chris Davis"
 description              : "A blog about stuff."
