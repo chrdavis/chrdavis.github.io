@@ -23,3 +23,7 @@ http://www.usastore.revolectrix.com/Products_2/Cellpro-4s-Charge-Adapters_2/Cell
 #### Arduino
 
 I was originally planning on using the [Adafruit Huzzah Feather ESP8266](https://www.adafruit.com/product/2821) since I saw from other implementers that they had luck with the device.  Also, the Huzzah could handle the 5V from the heat pump directly without requiring a 5V to 3.3V regulator.  I then saw posts where people said they were successfully using the Wemos D1 Mini.  The D1 Mini could also handle the 5V without a regulator but was also significantly cheaper.  The Huzzah costs close to $20 each.  You can get a [pack of 5 Wemos D1 Mini (clones) for that much](https://www.amazon.com/dp/B076F52NQD/ref=cm_sw_em_r_mt_dp_U_hzfdDbC64GWC5).  The D1 was also much smaller and would fit better in tight spaces.  While the Huzzah is superior in other respects, the minimum requirements of what I needed for this project made the D1 Mini more desirable.
+
+| Huzzah Feather ESP8266 | Wemos D1 Mini |
+|-------|--------|
+| ![Huzzah Feather ESP8266](/_posts/images/Huzzah_Feather_ESP8266.jpg) | ![Wemos D1 Mini](/_posts/images/Wemos_D1_Mini.jpg) |
