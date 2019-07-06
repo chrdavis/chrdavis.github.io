@@ -56,8 +56,8 @@ Configure Arduino IDE
 
 4. Select the Port your device is on.  In my case, it is on COM4.  After this we should be able to upload code to the device.
 5. Next, just to test that your setup and Arduino are working, lets upload some sample code that simply flashes the onboard LED.
-		a. From the file menu, select Examples > ESP8266 > Blink
-		b. From the Sketch menu, select Upload
+   a. From the file menu, select Examples > ESP8266 > Blink
+   b. From the Sketch menu, select Upload
     
 If the upload completes successfully, you should see a blinking light on your Arduino
 
@@ -78,11 +78,10 @@ This is a simple webserver that operates as a wifi access point you can join to 
 ![Arduino IDE](/assets/images/Arduino_IDE2.jpg)
 
 8. From the Sketch menu, select Verify/Compile
-	 a. Note: you may get some dependency errors like the ones below for libraries that are not installed.  
-			ArduinoJson.h: No such file or directory
-			PubSubClient.h: No such file or directory
-			
-	 b. If that is the case you can install them from the Tools menu by clicking "Manage Libraries…".  From there, search for ArduinoJson and PubSubClient and install the packages.  Then try Verify/Compile again.  If successful, then upload the code to the device via the Sketch > Upload menu item.
+   a. Note: you may get some dependency errors like the ones below for libraries that are not installed.  
+      ArduinoJson.h: No such file or directory
+      PubSubClient.h: No such file or directory
+   b. If that is the case you can install them from the Tools menu by clicking "Manage Libraries…".  From there, search for ArduinoJson and PubSubClient and install the packages.  Then try Verify/Compile again.  If successful, then upload the code to the device via the Sketch > Upload menu item.
 
 The below is from my iPhone.  If the chip was connected to the heat pump it would be displaying the current settings.  This sample code provides basic functionality to allow you to access each of your heat pumps while you are at home and modify their settings.  Next, lets solder up our CN105 cable to the Arduino so we can plug it in to our heat pump.
 
