@@ -26,7 +26,7 @@ I was originally planning on using the [Adafruit Huzzah Feather ESP8266](https:/
 
 | Huzzah Feather ESP8266 | Wemos D1 Mini |
 |-------|--------|
-| ![Huzzah Feather ESP8266](/_posts/images/Huzzah_Feather_ESP8266.jpg) | ![Wemos D1 Mini](/_posts/images/Wemos_D1_Mini.jpg) |
+| ![Huzzah Feather ESP8266](./images/Huzzah_Feather_ESP8266.jpg) | ![Wemos D1 Mini](./images/Wemos_D1_Mini.jpg) |
 
 #### Micro-USB to USB Adapter
 
