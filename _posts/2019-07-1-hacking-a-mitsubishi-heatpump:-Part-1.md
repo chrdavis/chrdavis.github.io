@@ -1,4 +1,4 @@
-## Hacking a Mitsubishi Heat Pump
+## Hacking a Mitsubishi Heat Pump: Part 1
 
 ### Introduction
 
@@ -14,13 +14,13 @@ Eventually I came across a [Github project](https://github.com/SwiCago/HeatPump)
 
 ### Materials
 
-**CN105 Cable**
+#### CN105 Cable
 
 The Github project has part suggestions with links to online suppliers.  I ended up ordering 5 premade CN105 cables from the below link.  Since they were only $1.99 I figured getting an spare would be a good idea.
 
 http://www.usastore.revolectrix.com/Products_2/Cellpro-4s-Charge-Adapters_2/Cellpro-JST-PA-Battery-Pigtail-10-5-Position
 
-**Arduino**
+#### Arduino
 
 I was originally planning on using the [Adafruit Huzzah Feather ESP8266](https://www.adafruit.com/product/2821) since I saw from other implementers that they had luck with the device.  Also, the Huzzah could handle the 5V from the heat pump directly without requiring a 5V to 3.3V regulator.  I then saw posts where people said they were successfully using the Wemos D1 Mini.  The D1 Mini could also handle the 5V without a regulator but was also significantly cheaper.  The Huzzah costs close to $20 each.  You can get a [pack of 5 Wemos D1 Mini (clones) for that much](https://www.amazon.com/dp/B076F52NQD/ref=cm_sw_em_r_mt_dp_U_hzfdDbC64GWC5).  The D1 was also much smaller and would fit better in tight spaces.  While the Huzzah is superior in other respects, the minimum requirements of what I needed for this project made the D1 Mini more desirable.
 
@@ -32,14 +32,14 @@ I was originally planning on using the [Adafruit Huzzah Feather ESP8266](https:/
 
 You will also need a micro-usb to USB adapter to connect the Arduino to your computer to upload your code.  Note that you can also update the code on your Arduino over wifi, which will come in handy later after we install the chip inside the heat pump.
 
-**Other Things You Will Need**
+#### Other Things You Will Need
 
 * Soldering iron
 * Solder
 
 ### Code
 
-**Setting Up Your Environment**
+#### Setting Up Your Environment
 
 Note: Instructions here are geared towards Windows but shouldn't differ that much on other platforms.
 
@@ -63,7 +63,7 @@ Configure Arduino IDE
     
 If the upload completes successfully, you should see a blinking light on your Arduino
 
-**Working With the Heatpump Code**
+#### Working With the Heatpump Code
 
 Get the code
 
