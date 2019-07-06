@@ -1,6 +1,6 @@
 ### Introduction
 
-I recently installed 4 heat pumps in my house to provide heat in the winter and AC in the summer time.  While the weather year round in Seattle is fairly pleasant, there is about a month in the summer where life is miserable if you don't have air conditioning - a rare luxury in residential homes in the Pacific North West.
+I recently installed 4 heat pumps in my house to provide heat in the winter and AC in the summer time.  While the weather year round in Seattle is fairly pleasant, there is about a month in the summer where life is miserable if you don't have air conditioning - a rare luxury in residential homes in the Pacific Northwest.
 
 ![Mitsubishi MSZ-FH09NA Heat Pump](/assets/images/mitsubishi_heat_pump_msz-fh09na.jpg)
 
@@ -56,7 +56,9 @@ Configure Arduino IDE
 
 4. Select the Port your device is on.  In my case, it is on COM4.  After this we should be able to upload code to the device.
 5. Next, just to test that your setup and Arduino are working, lets upload some sample code that simply flashes the onboard LED.
+
    a. From the file menu, select Examples > ESP8266 > Blink
+   
    b. From the Sketch menu, select Upload
     
 If the upload completes successfully, you should see a blinking light on your Arduino
