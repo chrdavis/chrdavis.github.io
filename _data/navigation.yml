@@ -1,6 +1,6 @@
 # main links
 main:
-  # - title: "About"
-  #   url: https://chrdavis.github.io/about/
-  # - title: "Projects"
-  #   url: https://github.com/chrdavis
+  - title: "About"
+    url: https://chrdavis.github.io/about/
+  - title: "Projects"
+    url: https://github.com/chrdavis
