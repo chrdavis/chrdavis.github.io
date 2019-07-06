@@ -4,11 +4,11 @@
 
 I recently installed 4 heat pumps in my house to provide heat in the winter and AC in the summer time.  While the weather year round in Seattle is fairly pleasant, there is about a month in the summer where life is miserable if you don't have air conditioning - a rare luxury in residential homes in the Pacific North West.
 
-![Mitsubishi MSZ-FH09NA Heat Pump](/_posts/images/mitsubishi_heat_pump_msz-fh09na.jpg)
+![Mitsubishi MSZ-FH09NA Heat Pump](./images/mitsubishi_heat_pump_msz-fh09na.jpg)
 
 I had 4 [Mitsubishi MSZ-FH09NA Heat Pumps](https://www.mitsubishicomfort.com/node/1103) installed in my house.  They came with an IR remote for controlling the them - but being IR I had to be in the room to use it.  This was a pain when I had needed change the temperature in my kids' rooms and not wake them.  Mitsubishi does offer an additional hardware adapter that allows connectivity over the internet for the heat pumps via an iOS or Android app.  I was shocked and disappointed to find out that the device would cost approximately $180 each.  For 4 units that would be around $1k total with tax!  Ouch!  Second, according to reviews, their app and service was not the best quality.  Third, the adapter attaches to the outside of the heat pump and looks ugly.
 
-![Mitsubishi Ductless Wifi Interface Adapter for Kumo Cloud Price](/_posts/images/mitsubishi_ductless_wifi_interface_adapter_for_kumo_cloud.jpg)
+![Mitsubishi Ductless Wifi Interface Adapter for Kumo Cloud Price](./images/mitsubishi_ductless_wifi_interface_adapter_for_kumo_cloud.jpg)
 
 Eventually I came across a [Github project](https://github.com/SwiCago/HeatPump) that reverse engineered the protocol used by the adapter and provided source code to communicate with the heat pump using an Arduino.  I don't have much of a hardware background, but it seemed rather simple.  I just had to order the same cable the Mitsubishi adapter uses and a 4 Arduino chips.    
 
@@ -52,7 +52,7 @@ Configure Arduino IDE
 2. Open Arduino IDE
 3. From the Tools menu you will need to select the board that matches your device.  In this case I am using the "LOLIN(WEMOS) D1 R2 & mini" board.  After selecting this it will fill in some defaults.  Note: If you can't find your board you will can search for and download it from the Boards Manager.  A quick search online for using your device in Arduino IDE should yield the instructions you need.  In my case this was included in the esp8266 board package which supports a large number of boards.
 
-![Arduino IDE](/_posts/images/Arduino_IDE1.jpg)
+![Arduino IDE](./images/Arduino_IDE1.jpg)
 
 4. Select the Port your device is on.  In my case, it is on COM4.  After this we should be able to upload code to the device.
 5. Next, just to test that your setup and Arduino are working, lets upload some sample code that simply flashes the onboard LED.
@@ -75,7 +75,7 @@ Get the code
   
 This is a simple webserver that operates as a wifi access point you can join to operate your heat pump. 
 
-![Arduino IDE](/_posts/images/Arduino_IDE2.jpg)
+![Arduino IDE](./images/Arduino_IDE2.jpg)
 
 8. From the Sketch menu, select Verify/Compile
 	 a. Note: you may get some dependency errors like the ones below for libraries that are not installed.  
@@ -86,7 +86,7 @@ This is a simple webserver that operates as a wifi access point you can join to 
 
 The below is from my iPhone.  If the chip was connected to the heat pump it would be displaying the current settings.  This sample code provides basic functionality to allow you to access each of your heat pumps while you are at home and modify their settings.  Next, lets solder up our CN105 cable to the Arduino so we can plug it in to our heat pump.
 
-![Heat Pump Demo Screen](/_posts/images/heat_pump_demo_screen.jpg)
+![Heat Pump Demo Screen](./images/heat_pump_demo_screen.jpg)
 
 ### Soldering
 
@@ -94,7 +94,7 @@ I only needed 4 of the 5 wires on the premade cable.  Stripping and soldering th
 
 The 5V (brown) and ground (orange) pinouts are on the left, the RX (blue) and TX (red) on the right.  You can follow the cables below since your CN105 wire colors might be different
 
-| ![Wemos D1 Soldered](/_posts/images/Wemos_D1_Solder1.jpg) | ![Wemos D1 Soldered](/_posts/images/Wemos_D1_Solder2.jpg) |
+| ![Wemos D1 Soldered](./images/Wemos_D1_Solder1.jpg) | ![Wemos D1 Soldered](./images/Wemos_D1_Solder2.jpg) |
 
 
 ### Installing
@@ -104,23 +104,23 @@ I was a little hesitant of opening up my heat pump at first.  They are certainly
 1. Turn off the heat pump
 2. First, lift the main cover like the image below.  Then pull it away from the wall.  It should slide out of the hinges with a little wiggling.
 
-![Install Step 2](/_posts/images/heatpump_install1.jpg)
+![Install Step 2](./images/heatpump_install1.jpg)
 
 3. Remove screws at the below locations.  The area circled on the bottom is a little plastic piece that you can remove which hides a screw.  With these removed you should be able to take off the right plastic shell.
 
-![Install Step 3](/_posts/images/heatpump_install2.jpg)
+![Install Step 3](./images/heatpump_install2.jpg)
 
 4. Remove the below screw and slide the right metal shielding away from the wall.
 
-![Install Step 4](/_posts/images/heatpump_install3.jpg)
+![Install Step 4](./images/heatpump_install3.jpg)
 
 5. With the shielding removed, you should see the control board.  Below I point out the CN105 connection where you will connect the Arduino
 
-![Install Step 5](/_posts/images/heatpump_install4.jpg)
+![Install Step 5](./images/heatpump_install4.jpg)
 
 6. Plug in the device.  I tucked mine in the best I could where it wouldn't be in the way.
 
-| ![Install Step 6](/_posts/images/heatpump_install5.jpg) | ![Install Step 6](/_posts/images/heatpump_install6.jpg) |
+| ![Install Step 6](./images/heatpump_install5.jpg) | ![Install Step 6](./images/heatpump_install6.jpg) |
 
 7. Turn the heat pump on.
 8. If you have the wifi access point example installed on the chip you can try connecting to it to now to verify if it is reading the data on the heat pump.  Try modifying the settings as well.
