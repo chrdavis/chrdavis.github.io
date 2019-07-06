@@ -129,10 +129,10 @@ I was a little hesitant of opening up my heat pump at first.  They are certainly
 ### Limitations
 
 This is a simple setup to enable changing the settings on your heat pump from a browser.  A few things I didn't like:
-	• UI is not user friendly
-	• The Wi-Fi Access Point seems flaky.  I kept getting dropped from my iPhone.  Not sure if it is just that device or not.  I didn't use this solution for long so I didn’t troubleshoot it much.
-	• The example code didn't enable OTA updates for the chip.  So I would have to physically take it out of the heat pump every time I wanted to update it.  Other examples do and it is pretty simple to add it.
-	• I need to connect to different access points to read/change settings on each of my heat pumps.
-	• I can't connect to the heat pump over the internet - only when I am physically home.  I would like to get the house warm/cold before I get home.
+* UI is not user friendly
+* The Wi-Fi Access Point seems flaky.  I kept getting dropped from my iPhone.  Not sure if it is just that device or not.  I didn't use this solution for long so I didn’t troubleshoot it much.
+* The example code didn't enable OTA updates for the chip.  So I would have to physically take it out of the heat pump every time I wanted to update it.  Other examples do and it is pretty simple to add it.
+* I need to connect to different access points to read/change settings on each of my heat pumps.
+* I can't connect to the heat pump over the internet - only when I am physically home.  I would like to get the house warm/cold before I get home.
 
 The good thing is that some of the other project examples leverage [MQTT (Message Queuing Telemetry Transport)](https://en.wikipedia.org/wiki/MQTT) to allow communication across the internet.  Some home automation tools such as Hass.io leverage this.  I'll cover those in my next post.
