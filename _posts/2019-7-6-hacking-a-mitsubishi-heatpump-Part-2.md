@@ -13,7 +13,7 @@ I won't go into too much detail on [how MQTT works](http://mosquitto.org/man/mqt
 
 Hass.io turns your Raspberry Pi (or another device) into the ultimate home automation hub powered by Home Assistant. With Hass.io you can focus on integrating your devices and writing automations.
 
-Home Assistant is the centralized app we needed.  This provides the MQTT Broker (Mosquitto Add-on) and great UI.  It also has some advanced home automation capabilities that I have not utilized yet.
+Home Assistant is the centralized app we needed.  This provides the MQTT Broker (Mosquitto Add-on) and great UI.  It also has some advanced home automation capabilities that I have not utilized yet.  You can access it from your browser or from your phone via the free Home Assistant app.  To access outside your Wi-fi network you will have to enable port forwarding of the port and ip address that hass.io is running on.  See instructions for your router.
 
 The best installation instructions I have found are in the below video:
 https://www.youtube.com/watch?v=qnCRcGTznXs
