@@ -1,5 +1,3 @@
-### Introduction
-
 I recently installed 4 heat pumps in my house to provide heat in the winter and AC in the summer time.  While the weather year round in Seattle is fairly pleasant, there is about a month in the summer where life is miserable if you don't have air conditioning - a rare luxury in residential homes in the Pacific Northwest.
 
 ![Mitsubishi MSZ-FH09NA Heat Pump](/assets/images/mitsubishi_heat_pump_msz-fh09na.jpg)
