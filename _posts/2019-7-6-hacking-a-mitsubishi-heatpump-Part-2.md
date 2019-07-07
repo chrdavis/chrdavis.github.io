@@ -24,13 +24,14 @@ While you could [install Home Assistant on Windows](https://www.home-assistant.i
 
 After installing, be sure to install and setup the MQTT Broker (Mosquitto Add-on) so the code running on our Arduino can connect and publish MQTT messages.  Note that I had to use the ip address 172.17.0.1 (the docker network default gateway) for the broker to get it to work properly.  I found that fix in [this reddit post](https://www.reddit.com/r/homeassistant/comments/74qqtc/hassio_mqtt_installation_beginner_questions/) to the homeassistant subreddit.
 
+```ruby
 mqtt:
   broker: 172.17.0.1
   port: 1883
   username: <my mqtt user name>
   password: <my mqtt password>
   discovery: true
-
+```
 
 We will have to do some extra steps to have Home Assistant work with the Mitsubishi Heat Pump, but that will come later.
 
@@ -59,6 +60,7 @@ Note - the above code will have some dependency libraries required that you will
 
 This header contains constants used in the mitsubishi_heatpump_mqtt_esp8266_esp32.ino file.  This includes your Wi-fi SSID and password, your mqtt server/broker ip address, port and password as well as the mqtt client name and topic paths. 
 
+```c++
 //#define ESP32
 //#define OTA
 //const char* ota_password = "<YOUR OTA PASSWORD GOES HERE>";
@@ -83,11 +85,13 @@ const char* heatpump_timers_topic       = "heatpump/timers";
 
 const char* heatpump_debug_topic        = "heatpump/debug";
 const char* heatpump_debug_set_topic    = "heatpump/debug/set";
+```
 
 Be sure to uncomment the #define OTA if you want to flash your Arduino over Wi-fi.  If you are like me you don't want to open up your heat pump again if you don't have to.
 
 Note: If you are setting up multiple heat pumps (like I was) be sure to have not only a unique name for the client_id, but also for the topic paths.  Otherwise all of your heatpumps will be sending messages on the same topic.  For example,
 
+```c++
 const char* client_id                   = "Master Bedroom Heatpump"; // Must be unique on the MQTT network
 const char* heatpump_topic              = "Master Bedroom/heatpump";
 const char* heatpump_set_topic          = "Master Bedroom/heatpump/set";
@@ -96,15 +100,19 @@ const char* heatpump_timers_topic       = "Master Bedroom/heatpump/timers";
 
 const char* heatpump_debug_topic        = "Master Bedroom/heatpump/debug";
 const char* heatpump_debug_set_topic    = "Master Bedroom/heatpump/debug/set";
+```
 
 Also, follow the instructions of the comment and update the size of MQTT_MAX_PACKET_SIZE to 256 just in case you have issues with the default of 128.
 
-/*mitsubishi_heatpump_mqtt_esp8266_esp32.ino*/
+mitsubishi_heatpump_mqtt_esp8266_esp32.ino
+
 The implementation code.  I set the below to false since it was causing a significant amount of MQTT traffic.   You can see the MQTT traffic using the [MQTT Fx](http://mqttfx.org/) tool.
 
+```c++
 // debug mode, when true, will send all packets received from the heatpump to topic heatpump_debug_topic
 // this can also be set by sending "on" to heatpump_debug_set_topic
 bool _debugMode = true;
+```
 
 ### Flashing the Arduino 
 
@@ -129,12 +137,15 @@ This contains the climate.py and manifest.json files.
 
 Add the line below
 
+```ruby
 climate.mistubishi_heatpump: {}
+```
 
 /*configuration.yaml*/
 
 Add the mqtt and climate entries.  These are mine.
 
+```ruby
 mqtt:
   broker: 172.17.0.1
   port: 1883
@@ -166,10 +177,11 @@ climate:
      command_topic: "Master Room/heatpump/set"
      temperature_state_topic: "Master Room/heatpump/status"
      state_topic: "Master Room/heatpump"
+```
 
 FYI - It wasn't available when I did my install but there is a way to use the built-in MQTT climate component instead of this custom component.  See the additions to the configuration.yaml in the below gist.  I have heard confirmation that this works and is easier than the above.
-https://gist.github.com/kmdm/29f740e5f36036fb23daba8f2109c359
 
+<script src="https://gist.github.com/kmdm/29f740e5f36036fb23daba8f2109c359.js"></script>
 
 ### Adding a Heat Pump in Home Assistant
 
