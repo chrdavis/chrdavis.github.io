@@ -109,7 +109,7 @@ The implementation code.  I set the below to false since it was causing a signif
 ```c++
 // debug mode, when true, will send all packets received from the heatpump to topic heatpump_debug_topic
 // this can also be set by sending "on" to heatpump_debug_set_topic
-bool _debugMode = true;
+bool _debugMode = false;
 ```
 
 ### Flashing the Arduino 
