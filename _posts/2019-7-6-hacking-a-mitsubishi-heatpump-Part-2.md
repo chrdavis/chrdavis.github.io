@@ -1,24 +1,35 @@
-In my previous post I showed how to use a cheap Arduino to connect wirelessly to a Mitsubishi heat pump to control its settings.  Yet, it still took some work to connect to the device Access Point/Web Server.  Having multiple heat pumps in your home is even more laborious.  Without a lot more work, you also couldn’t communicate directly with them from outside of your Wi-fi network.  What we need is a centralized app that can communicate with the Arduinos directly.
+In my previous post I showed how to use a cheap Arduino to connect wirelessly to a Mitsubishi heat pump to control its settings.  Yet, it still took some work to connect to the device access point/web server.  Having multiple heat pumps in your home is even more laborious.  Without a lot more work, you also couldn’t communicate directly with them from outside of your Wi-fi network.  What we need is a centralized app that can communicate with the Arduino more directly.
 
 ### MQTT
 
 From the [mqtt.org](https://mqtt.org) site:
-MQTT is a machine-to-machine (M2M)/"Internet of Things" connectivity protocol. It was designed as an extremely lightweight publish/subscribe messaging transport.
+*MQTT is a machine-to-machine (M2M)/"Internet of Things" connectivity protocol. It was designed as an extremely lightweight publish/subscribe messaging transport.*
 
 I won't go into too much detail on [how MQTT works](http://mosquitto.org/man/mqtt-7.html), but it is essentially a Publish/Subscribe messaging model (publish messages/subscribe to topics).  Clients connect to a MQTT broker to subscribe to topics they want and publish messages to topics.  
 
 ### Hass.io and Home Assistant
 
-Hass.io turns your Raspberry Pi (or another device) into the ultimate home automation hub powered by Home Assistant. With Hass.io you can focus on integrating your devices and writing automations.
+From the [Home Assistant](https://www.home-assistant.io/hassio/) site:
+*Hass.io turns your Raspberry Pi (or another device) into the ultimate home automation hub powered by Home Assistant. With Hass.io you can focus on integrating your devices and writing automations.*
 
-Home Assistant is the centralized app we needed.  This provides the MQTT Broker (Mosquitto Add-on) and great UI.  It also has some advanced home automation capabilities that I have not utilized yet.  You can access it from your browser or from your phone via the free Home Assistant app.  To access outside your Wi-fi network you will have to enable port forwarding of the port and ip address that hass.io is running on.  See instructions for your router.
+Home Assistant is the centralized app we needed.  This provides the MQTT Broker (Mosquitto Add-on) and a great UI.  It also has some advanced home automation capabilities.  You can access it from your browser or from your phone via the free Home Assistant app.  To access outside your Wi-fi network you will have to enable port forwarding of the port and ip address that hass.io is running on.  See instructions for your specific router if supported.
 
 The best installation instructions I have found are in the below video:
 https://www.youtube.com/watch?v=qnCRcGTznXs
 
 As well as the [hass.io documentation](https://www.home-assistant.io/hassio/installation/)
 
-While you could [install Home Assistant on Windows](https://www.home-assistant.io/docs/installation/windows/), it is not fully supported and not all third-party modules work.  Because of this reason (and since I have never played with one before) I opted to pick up a Raspberry Pi since it was the most common install platform. 
+While you could [install Home Assistant on Windows](https://www.home-assistant.io/docs/installation/windows/), it is not fully supported and not all third-party modules work.  Because of this reason (and since I have never had the chance to play with one before) I opted to pick up a Raspberry Pi since it was the most common install platform. 
+
+I purchased the below Pi with a case.
+
+CanaKit Raspberry Pi 3 B+ (B Plus) with Premium Clear Case and 2.5A Power Supply 
+https://www.amazon.com/dp/B07BC7BMHY/ref=cm_sw_em_r_mt_dp_U_UTyiDbRW5SK29 
+
+I also bought a 32GB memory card for the Pi (not included in the above CanaKit)
+
+Samsung 32GB EVO Plus Class 10 Micro SDHC with Adapter 80mb/s (MB-MC32DA/AM) 
+https://www.amazon.com/dp/B00WR4IJBE/ref=cm_sw_em_r_mt_dp_U_VTyiDbZT8GYBT 
 
 After installing, be sure to install and setup the MQTT Broker (Mosquitto Add-on) so the code running on our Arduino can connect and publish MQTT messages.  Note that I had to use the ip address 172.17.0.1 (the docker network default gateway) for the broker to get it to work properly.  I found that fix in [this reddit post](https://www.reddit.com/r/homeassistant/comments/74qqtc/hassio_mqtt_installation_beginner_questions/) to the homeassistant subreddit.
 
@@ -32,20 +43,6 @@ mqtt:
 ```
 
 We will have to do some extra steps to have Home Assistant work with the Mitsubishi Heat Pump, but that will come later.
-
-
-### Hardware
-
-I purchased the below Pi with a case.
-
-CanaKit Raspberry Pi 3 B+ (B Plus) with Premium Clear Case and 2.5A Power Supply 
-https://www.amazon.com/dp/B07BC7BMHY/ref=cm_sw_em_r_mt_dp_U_UTyiDbRW5SK29 
-
-I also bought a 32GB memory card for the Pi (not included in the above CanaKit)
-
-Samsung 32GB EVO Plus Class 10 Micro SDHC with Adapter 80mb/s (MB-MC32DA/AM) 
-https://www.amazon.com/dp/B00WR4IJBE/ref=cm_sw_em_r_mt_dp_U_VTyiDbZT8GYBT 
-
 
 ### Code
 
@@ -129,8 +126,6 @@ to the home assistant config directory
 
 This contains the climate.py and manifest.json files.
 
-
-
 *customize.yaml*
 
 Add the line below
@@ -177,7 +172,7 @@ climate:
      state_topic: "Master Room/heatpump"
 ```
 
-FYI - It wasn't available when I did my install but there is a way to use the built-in MQTT climate component instead of this custom component.  See the additions to the configuration.yaml in the below gist.  I have heard confirmation that this works and is easier than the above.
+FYI - It wasn't available when I did my install but there is a way to use the built-in MQTT climate component instead of this custom component.  See the additions to the configuration.yaml in the below gist.  I have heard confirmation that this works and is easier than the above custom component solution.
 
 https://gist.github.com/kmdm/29f740e5f36036fb23daba8f2109c359.js
 
