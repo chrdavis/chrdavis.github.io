@@ -36,7 +36,7 @@ mqtt:
 We will have to do some extra steps to have Home Assistant work with the Mitsubishi Heat Pump, but that will come later.
 
 
-Hardware
+### Hardware
 
 I purchased the below Pi with a case.
 
@@ -49,14 +49,14 @@ Samsung 32GB EVO Plus Class 10 Micro SDHC with Adapter 80mb/s (MB-MC32DA/AM)
 https://www.amazon.com/dp/B00WR4IJBE/ref=cm_sw_em_r_mt_dp_U_VTyiDbZT8GYBT 
 
 
-Code
+### Code
 
 See the code available on the SwiCago / HeatPump repo at:
 HeatPump/examples/mitsubishi_heatpump_mqtt_esp8266_esp32
 
 Note - the above code will have some dependency libraries required that you will have to download through the Arduino IDE.  These include ArduinoJson and PubSubClient.
 
-/*mitsubishi_heatpump_mqtt_esp8266_esp32.h*/
+/**mitsubishi_heatpump_mqtt_esp8266_esp32.h**/
 
 This header contains constants used in the mitsubishi_heatpump_mqtt_esp8266_esp32.ino file.  This includes your Wi-fi SSID and password, your mqtt server/broker ip address, port and password as well as the mqtt client name and topic paths. 
 
@@ -104,7 +104,7 @@ const char* heatpump_debug_set_topic    = "Master Bedroom/heatpump/debug/set";
 
 Also, follow the instructions of the comment and update the size of MQTT_MAX_PACKET_SIZE to 256 just in case you have issues with the default of 128.
 
-mitsubishi_heatpump_mqtt_esp8266_esp32.ino
+/**mitsubishi_heatpump_mqtt_esp8266_esp32.ino**/
 
 The implementation code.  I set the below to false since it was causing a significant amount of MQTT traffic.   You can see the MQTT traffic using the [MQTT Fx](http://mqttfx.org/) tool.
 
@@ -133,7 +133,7 @@ This contains the climate.py and manifest.json files.
 
 
 
-/*customize.yaml*/
+/**customize.yaml**/
 
 Add the line below
 
@@ -141,7 +141,7 @@ Add the line below
 climate.mistubishi_heatpump: {}
 ```
 
-/*configuration.yaml*/
+/**configuration.yaml**/
 
 Add the mqtt and climate entries.  These are mine.
 
