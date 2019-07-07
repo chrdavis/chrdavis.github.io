@@ -55,7 +55,8 @@ HeatPump/examples/mitsubishi_heatpump_mqtt_esp8266_esp32
 
 Note - the above code will have some dependency libraries required that you will have to download through the Arduino IDE.  These include ArduinoJson and PubSubClient.
 
-mitsubishi_heatpump_mqtt_esp8266_esp32.h
+/*mitsubishi_heatpump_mqtt_esp8266_esp32.h*/
+
 This header contains constants used in the mitsubishi_heatpump_mqtt_esp8266_esp32.ino file.  This includes your Wi-fi SSID and password, your mqtt server/broker ip address, port and password as well as the mqtt client name and topic paths. 
 
 //#define ESP32
@@ -98,25 +99,25 @@ const char* heatpump_debug_set_topic    = "Master Bedroom/heatpump/debug/set";
 
 Also, follow the instructions of the comment and update the size of MQTT_MAX_PACKET_SIZE to 256 just in case you have issues with the default of 128.
 
-mitsubishi_heatpump_mqtt_esp8266_esp32.ino
+/*mitsubishi_heatpump_mqtt_esp8266_esp32.ino*/
 The implementation code.  I set the below to false since it was causing a significant amount of MQTT traffic.   You can see the MQTT traffic using the [MQTT Fx](http://mqttfx.org/) tool.
 
 // debug mode, when true, will send all packets received from the heatpump to topic heatpump_debug_topic
 // this can also be set by sending "on" to heatpump_debug_set_topic
 bool _debugMode = true;
 
-Flash Arduino 
+### Flashing the Arduino 
 
 After configuring the settings for the one or more Arduino chips, flash the devices.  Verify by plugging them into your PC that they connect and show up on your local Wi-fi router.  If you have Home Assistant installed or [MQTT Fx](http://mqttfx.org/) you can verify that the devices are publishing MQTT messages with the default values.  
 
 
-Adding the Mitsubishi MQTT custom component 
+### Adding the Mitsubishi MQTT Custom Component to Home Assistant 
 
 Copy mitsubishi_mqtt folder from the below location
 
 https://github.com/SwiCago/HeatPump/tree/master/integrations/home-assistant.io/custom_components
 
- to the home assistant config directory
+to the home assistant config directory
 
 \config\custom_components\mitsubishi_mqtt
 
@@ -124,13 +125,13 @@ This contains the climate.py and manifest.json files.
 
 
 
-Customize.yaml
+/*customize.yaml*/
 
 Add the line below
 
 climate.mistubishi_heatpump: {}
 
-configuration.yaml
+/*configuration.yaml*/
 
 Add the mqtt and climate entries.  These are mine.
 
