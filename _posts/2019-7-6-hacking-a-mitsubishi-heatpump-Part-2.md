@@ -190,6 +190,6 @@ Give the new thermostat card a name.  Next, select an entity from the drop down.
 
 ![Adding a Heat Pump in Home Assistant - Step 3](/assets/images/homeassistant_addcard2.jpg)
 
-The device should now be on your home screen.
+The device should now be on your home screen.  Play with the settings to verify that the end-to-end communication with the heat pump is working.
 
 
