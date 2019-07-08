@@ -6,7 +6,7 @@ I had 4 [Mitsubishi MSZ-FH09NA Heat Pumps](https://www.mitsubishicomfort.com/nod
 
 ![Mitsubishi Ductless Wifi Interface Adapter for Kumo Cloud Price](/assets/images/mitsubishi_ductless_wifi_interface_adapter_for_kumo_cloud.jpg)
 
-Eventually I came across a [SwiCago's Github project](https://github.com/SwiCago/HeatPump) that provides source code that implements the protocol used by the adapter to communicate with the heat pump using an Arduino.  This is based of the original work posted in [this blog](https://nicegear.nz/blog/hacking-a-mitsubishi-heat-pump-air-conditioner/). I don't have much of a hardware background, but it seemed rather simple.  I just had to order the same cable the Mitsubishi adapter uses and 4 Arduino chips.
+Eventually I came across a [SwiCago's Github project](https://github.com/SwiCago/HeatPump) that provides source code that implements the protocol used by the adapter to communicate with the heat pump using an Arduino.  This is based of the original work posted in [this blog](https://nicegear.nz/blog/hacking-a-mitsubishi-heat-pump-air-conditioner/). I don't have much of a hardware background and I have never worked with Arduinos before, but it seemed rather simple.  I just had to order the same cable the Mitsubishi adapter uses and 4 Arduino chips.
 
 You can check if your Mitsubishi Heat Pump model will work with this code by checking the [supported models list](https://github.com/SwiCago/HeatPump/wiki/Supported-models) on SwiCago's Github page.
 
