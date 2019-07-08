@@ -174,7 +174,7 @@ climate:
 
 FYI - It wasn't available when I did my install but there is a way to use the built-in MQTT climate component instead of this custom component.  See the additions to the configuration.yaml in the below gist.  I have heard confirmation that this works and is easier than the above custom component solution.
 
-https://gist.github.com/kmdm/29f740e5f36036fb23daba8f2109c359.js
+https://gist.github.com/kmdm/29f740e5f36036fb23daba8f2109c359
 
 ### Adding a Heat Pump in Home Assistant
 
