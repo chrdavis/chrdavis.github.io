@@ -139,4 +139,4 @@ This is a simple setup to enable changing the settings on your heat pump from a 
 * I need to connect to different access points to read/change settings on each of my heat pumps.
 * I can't connect to the heat pump over the internet - only when I am physically home.  I would like to get the house warm/cold before I get home.
 
-The good thing is that some of the other project examples leverage [MQTT (Message Queuing Telemetry Transport)](https://en.wikipedia.org/wiki/MQTT) to allow communication across the internet.  Some home automation tools such as Hass.io leverage this.  I'll cover those in my next post.
+The good thing is that some of the other project examples leverage [MQTT (Message Queuing Telemetry Transport)](https://en.wikipedia.org/wiki/MQTT) to allow communication across the internet.  Some home automation tools such as Hass.io leverage this.  I'll cover those in my [next post](https://chrdavis.github.io/hacking-a-mitsubishi-heat-pump-Part-2/).
