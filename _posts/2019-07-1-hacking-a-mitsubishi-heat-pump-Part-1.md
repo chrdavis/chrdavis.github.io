@@ -45,23 +45,23 @@ Note: Instructions here are geared towards Windows but shouldn't differ that muc
 
 Download and Install Arduino IDE
 
-1. Navigate to https://www.arduino.cc/en/Main/Software
-2. Download the Arduino IDE for your platform and install it
+* Navigate to https://www.arduino.cc/en/Main/Software
+* Download the Arduino IDE for your platform and install it
 
 Configure Arduino IDE
 
-3. Plug your Arduino into your machine using the micro-USB to USB cable
-4. Open Arduino IDE
-5. From the Tools menu you will need to select the board that matches your device.  In this case I am using the "LOLIN(WEMOS) D1 R2 & mini" board.  After selecting this it will fill in some defaults.  Note: If you can't find your board you can search for and download it from the Boards Manager.  A quick search online for using your device in Arduino IDE should yield the instructions you need if you are having trouble.  In my case this was included in the esp8266 board package which supports a large number of boards.
+* Plug your Arduino into your machine using the micro-USB to USB cable
+* Open Arduino IDE
+* From the Tools menu you will need to select the board that matches your device.  In this case I am using the "LOLIN(WEMOS) D1 R2 & mini" board.  After selecting this it will fill in some defaults.  Note: If you can't find your board you can search for and download it from the Boards Manager.  A quick search online for using your device in Arduino IDE should yield the instructions you need if you are having trouble.  In my case this was included in the esp8266 board package which supports a large number of boards.
 
 ![Arduino IDE](/assets/images/Arduino_IDE1.jpg)
 
-6. Select the Port your device is on.  In my case, it is on COM4.  After this we should be able to upload code to the device.
-7. Next, just to test that your setup and Arduino are working, lets upload some sample code that simply blinks the onboard LED.
+* Select the Port your device is on.  In my case, it is on COM4.  After this we should be able to upload code to the device.
+* Next, just to test that your setup and Arduino are working, lets upload some sample code that simply blinks the onboard LED.
 
-   a. From the file menu, select Examples > ESP8266 > Blink
+   * From the file menu, select Examples > ESP8266 > Blink
    
-   b. From the Sketch menu, select Upload
+   * From the Sketch menu, select Upload
     
 If the upload completes successfully and the device is functioning correctly, you should see a blinking light on your Arduino
 
@@ -69,19 +69,19 @@ If the upload completes successfully and the device is functioning correctly, yo
 
 Get the code
 
-1. Navigate to https://github.com/SwiCago/HeatPump
-2. Click the "Clone or download" button
-3. Click "Download ZIP"
-4. Open the zip folder and copy the folder to your Arduino libraries folder (ex: c:\users\<username>\documents\arduino\libraries)
-5. Move the examples folder to the arduino folder (ex: c:\users\<username>\documents\arduino\examples)
-6. Restart Arduino IDE so it picks up the content you added
-7. From the File menu, select Sketchbook > HP_cntrl_esp8266
+* Navigate to https://github.com/SwiCago/HeatPump
+* Click the "Clone or download" button
+* Click "Download ZIP"
+* Open the zip folder and copy the folder to your Arduino libraries folder (ex: c:\users\<username>\documents\arduino\libraries)
+* Move the examples folder to the arduino folder (ex: c:\users\<username>\documents\arduino\examples)
+* Restart Arduino IDE so it picks up the content you added
+* From the File menu, select Sketchbook > HP_cntrl_esp8266
   
 This is a simple webserver that operates as a Wi-fi access point you can join to operate your heat pump. 
 
 ![Arduino IDE](/assets/images/Arduino_IDE2.jpg)
 
-8. From the Sketch menu, select Verify/Compile
+* From the Sketch menu, select Verify/Compile
   Note: you may get some dependency errors like the ones below for libraries that are not installed.  
       ArduinoJson.h: No such file or directory
       PubSubClient.h: No such file or directory
@@ -105,30 +105,30 @@ The 5V (brown) and ground (orange) pinouts are on the left, the RX (blue) and TX
 
 I was a little hesitant to open up my heat pump at first.  They are certainly not cheap.  I was surprised how easy it was to take apart. 
 
-1. Turn off the heat pump.  You should really disconnect it from power if you can.
-2. First, lift the main cover like the image below.  Then pull it away from the unit.  It should slide out of the hinges with a little wiggling.
+* Turn off the heat pump.  You should really disconnect it from power if you can.
+* First, lift the main cover like the image below.  Then pull it away from the unit.  It should slide out of the hinges with a little wiggling.
 
 ![Install Step 2](/assets/images/heatpump_install1.jpg)
 
-3. Remove screws at the below locations.  The area circled on the bottom is a little plastic piece that you can remove by hand which hides a screw.  With these removed you should be able to take off the right plastic shell.
+* Remove screws at the below locations.  The area circled on the bottom is a little plastic piece that you can remove by hand which hides a screw.  With these removed you should be able to take off the right plastic shell.
 
 ![Install Step 3](/assets/images/heatpump_install2.jpg)
 
-4. Remove the below screw and slide the right metal shielding away from the wall.
+* Remove the below screw and slide the right metal shielding away from the wall.
 
 ![Install Step 4](/assets/images/heatpump_install3.jpg)
 
-5. With the shielding removed, you should see the control board.  In the below image I point out the CN105 connection where you will connect the Arduino
+* With the shielding removed, you should see the control board.  In the below image I point out the CN105 connection where you will connect the Arduino
 
 ![Install Step 5](/assets/images/heatpump_install4.jpg)
 
-6. Plug in the device.  I tucked mine in the best I could where it wouldn't be in the way when I slid the metal shielding back on over the control board.
+* Plug in the device.  I tucked mine in the best I could where it wouldn't be in the way when I slid the metal shielding back on over the control board.
 
 | ![Install Step 6](/assets/images/heatpump_install5.jpg) | ![Install Step 6](/assets/images/heatpump_install6.jpg) |
 
-7. Turn the heat pump on.
-8. If you have the Wi-fi access point example installed on the chip you can try connecting to it to now to verify if it is reading the data on the heat pump.  Try modifying the settings as well.
-9. Put the heat pump case back together.
+* Turn the heat pump on.
+* If you have the Wi-fi access point example installed on the chip you can try connecting to it to now to verify if it is reading the data on the heat pump.  Try modifying the settings as well.
+* Put the heat pump case back together.
 
 ### Limitations
 
