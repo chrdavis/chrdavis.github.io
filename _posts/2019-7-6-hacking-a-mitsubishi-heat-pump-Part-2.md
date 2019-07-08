@@ -1,4 +1,4 @@
-In my previous post I showed how to use a cheap Arduino to connect wirelessly to a Mitsubishi heat pump to control its settings.  Yet, it still took some work to connect to the device access point/web server.  Having multiple heat pumps in your home is even more laborious.  Without a lot more work, you also couldn’t communicate directly with them from outside of your Wi-fi network.  What we need is a centralized app that can communicate with the Arduino more directly.
+In [my previous post](https://chrdavis.github.io/hacking-a-mitsubishi-heat-pump-Part-1/) I showed how to use a cheap Arduino to connect wirelessly to a Mitsubishi heat pump to control its settings.  Yet, it still took some work to connect to the device access point/web server.  Having multiple heat pumps in your home is even more laborious.  Without a lot more work, you also couldn’t communicate directly with them from outside of your Wi-fi network.  What we need is a centralized app that can communicate with the Arduino more directly.
 
 ### MQTT
 
