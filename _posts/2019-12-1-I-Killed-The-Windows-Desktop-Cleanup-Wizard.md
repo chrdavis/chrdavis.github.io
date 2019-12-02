@@ -2,7 +2,7 @@ Over almost two decades at Microsoft I have worked on a lot of stuff.  While shi
 
 ![Desktop Cleanup Wizard Balloon Tip](/assets/images/DesktopCleanupWizBalloon.png)
 
-Many will recall, [and not fondly](https://medium.com/@dfeldman/writing-notifications-that-dont-suck-60a90256efe5), that annoying balloon tip that would pop up from the system tray in Windows XP.  While it was distracting it was also confusing for those with no icons on their desktop aside from the Recycle Bin.  It has since been used as the example of how not to implement a notification system.
+Many will recall, [and not fondly](https://medium.com/@dfeldman/writing-notifications-that-dont-suck-60a90256efe5), that annoying balloon tip that would pop up from the system tray in Windows XP.  While it was distracting it was also confusing for those with no icons on their desktop aside from the Recycle Bin.
 
 The feature first appeared in late 2000 during Windows XP development and was referred to internally as the folder cleaner (fldrclnr.dll).  I removed the code late in the Windows Vista product cycle.    Digging around recently I found the code change:
 
