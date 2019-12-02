@@ -6,21 +6,21 @@ Many will recall, [and not fondly](https://medium.com/@dfeldman/writing-notifica
 
 The feature first appeared in late 2000 during Windows XP development and was referred to internally as the folder cleaner (fldrclnr.dll).  I removed the code late in the Windows Vista product cycle.    Digging around recently I found the code change:
 
-Change 280177 by WINGROUP\chrdavis@SHBLD25 on 2006/04/30 23:24:22
-
- BUG: 1575578: Remove fldrclnr from build
-
+> Change 280177 by WINGROUP\chrdavis@SHBLD25 on 2006/04/30 23:24:22
+> BUG: 1575578: Remove fldrclnr from build
 
 Unlike big game hunters who can hang their trophies over their mantel to humble brag to their acquaintances, this blog post will have to do.
 
-R.I.P.
-Desktop Cleanup Wizard
-2000 - 2006
+<p align="center">
+  <b>R.I.P.</b><br>
+  <b>Desktop Cleanup Wizard</b><br>
+  <b>2000 - 2006</b><br>
+</p>
 
-UPDATE: After going through the code changes some more I found that my friend Aidan Lowe had removed the infamous balloon tip almost a year before my change that removed the feature entirely.  Ah well.  
+### UPDATE
+After going through the code changes some more I found that my friend Aidan Lowe had removed the infamous balloon tip almost a year before my change that removed the feature entirely.  Ah well.  
 
-Change 166922 by NTDEV\aidanl@SHBLD04 on 2005/07/12 13:30:35
-
- Remove "you have unused icons" balloon. The end of an era; one of the major annoyances of XP is now gone.
+> Change 166922 by NTDEV\aidanl@SHBLD04 on 2005/07/12 13:30:35
+> Remove "you have unused icons" balloon. The end of an era; one of the major annoyances of XP is now gone.
 
 
