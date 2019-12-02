@@ -18,7 +18,7 @@ Unlike big game hunters who can hang their trophies over their mantel to humble 
 </p>
 
 ### UPDATE
-After going through the code changes some more I found that my friend Aidan Low had removed the infamous balloon tip almost a year before my change that removed the feature entirely.  Ah well.  
+After going through the code changes some more I found that my friend Aidan Low had removed the infamous balloon tip almost a year prior to my change that removed the feature entirely.  Ah well.  
 
 > Change 166922 by NTDEV\aidanl@SHBLD04 on 2005/07/12 13:30:35
 > Remove "you have unused icons" balloon. The end of an era; one of the major annoyances of XP is now gone.
