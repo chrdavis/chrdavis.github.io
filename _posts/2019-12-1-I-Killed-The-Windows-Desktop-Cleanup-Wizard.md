@@ -1,6 +1,8 @@
 Over almost two decades at Microsoft I have worked on a lot of stuff.  While shipping great products and features makes you feel great, I've found removing the terrible stuff is far more satisfying.  Nothing brought me more joy than killing the Windows Desktop Cleanup Wizard.
 
-![Desktop Cleanup Wizard Balloon Tip](/assets/images/DesktopCleanupWizBalloon.png)
+<p align="center">
+  <img src="/assets/images/DesktopCleanupWizBalloon.png" alt="Desktop Cleanup Wizard Balloon Tip">
+</p>
 
 Many will recall, [and not fondly](https://medium.com/@dfeldman/writing-notifications-that-dont-suck-60a90256efe5), that annoying balloon tip that would pop up from the system tray in Windows XP.  While it was distracting it was also confusing for those with no icons on their desktop aside from the Recycle Bin.  Microsoft's own design docs call it out amongst the [Windows XP Hall of Shame](https://docs.microsoft.com/en-us/windows/win32/uxguide/mess-notif#design-concepts) for "annoying, inappropriate, useless, irrelevant notifications".
 
