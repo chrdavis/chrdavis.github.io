@@ -19,6 +19,8 @@ Unlike big game hunters who can hang their trophies over their mantel to humble 
   <b>2000 - 2006</b><br>
 </p>
 
+It has been 13 years since the code has been removed and 5 years since support for Windows XP ended. Yet, I still see the little bastard on old point of sale or tv displays every now and then at the mall or the airport.  The reality is it will outlive us all.
+
 ### UPDATE
 After going through the code changes some more I found that my friend Aidan Low had removed the infamous balloon tip almost a year prior to my change that removed the feature entirely.  Ah well.  
 
