@@ -100,6 +100,7 @@ The 5V (brown) and ground (orange) pinouts are on the left, the RX (blue) and TX
 
 | ![Wemos D1 Soldered](/assets/images/Wemos_D1_Solder1.jpg) | ![Wemos D1 Soldered](/assets/images/Wemos_D1_Solder2.jpg) |
 
+[High resolution so you an see the pinouts](/assets/images/wemosd1-hires.jpg)
 
 ### Installing
 
