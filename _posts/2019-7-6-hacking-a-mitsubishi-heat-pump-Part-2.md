@@ -33,6 +33,8 @@ https://www.amazon.com/dp/B00WR4IJBE/ref=cm_sw_em_r_mt_dp_U_VTyiDbZT8GYBT
 
 After installing, be sure to install and setup the MQTT Broker (Mosquitto Add-on) so the code running on our Arduino can connect and publish MQTT messages.  Note that I had to use the ip address 172.17.0.1 (the docker network default gateway) for the broker to get it to work properly.  I found that fix in [this reddit post](https://www.reddit.com/r/homeassistant/comments/74qqtc/hassio_mqtt_installation_beginner_questions/) to the homeassistant subreddit.
 
+In Home Assistant, go to the File Editor and add the below to configuration.yaml
+
 ```ruby
 mqtt:
   broker: 172.17.0.1
@@ -41,155 +43,87 @@ mqtt:
   password: <my mqtt password>
   discovery: true
 ```
-
-We will have to do some extra steps to have Home Assistant work with the Mitsubishi Heat Pump, but that will come later.
 
 ### Code
 
-See the code available on the SwiCago / HeatPump repo at:
-HeatPump/examples/mitsubishi_heatpump_mqtt_esp8266_esp32
+UPDATED: 2/27/2020
+I recently switched to using gysmo38's MQTT module since my original post. It is much easier to deploy than the mqtt sample that was included SwiCago/HeatPump repo that relied on the HA custom component which would frequently be broken by Home Assistant updates. gysmo38's code allows Home Assistant autodiscovery - no custom component hacking to ensure your heatpump appears in Home Assistant!
+
+Download the code available at the below repo at:
+https://github.com/gysmo38/mitsubishi2MQTT
 
 Note - the above code will have some dependency libraries required that you will have to download through the Arduino IDE.  These include ArduinoJson and PubSubClient.
 
-*mitsubishi_heatpump_mqtt_esp8266_esp32.h*
+*Note PubSubClient.h has a MQTT_MAX_PACKET_SIZE of 128 defined, so either raise it to 256 or use short topic strings*
 
-This header contains constants used in the mitsubishi_heatpump_mqtt_esp8266_esp32.ino file.  This includes your Wi-fi SSID and password, your mqtt server/broker ip address, port and password as well as the mqtt client name and topic paths. 
-
-```c++
-//#define ESP32
-//#define OTA
-//const char* ota_password = "<YOUR OTA PASSWORD GOES HERE>";
-
-// wifi settings
-const char* ssid     = "<YOUR WIFI SSID GOES HERE>";
-const char* password = "<YOUR WIFI PASSWORD GOES HERE>";
-
-// mqtt server settings
-const char* mqtt_server   = "<YOUR MQTT BROKER IP/HOSTNAME GOES HERE>";
-const int mqtt_port       = 1883;
-const char* mqtt_username = "<YOUR MQTT USERNAME GOES HERE>";
-const char* mqtt_password = "<YOUR MQTT PASSWORD GOES HERE>";
-
-// mqtt client settings
-// Note PubSubClient.h has a MQTT_MAX_PACKET_SIZE of 128 defined, so either raise it to 256 or use short topics
-const char* client_id                   = "heatpump"; // Must be unique on the MQTT network
-const char* heatpump_topic              = "heatpump";
-const char* heatpump_set_topic          = "heatpump/set";
-const char* heatpump_status_topic       = "heatpump/status";
-const char* heatpump_timers_topic       = "heatpump/timers";
-
-const char* heatpump_debug_topic        = "heatpump/debug";
-const char* heatpump_debug_set_topic    = "heatpump/debug/set";
-```
-
-Be sure to uncomment the #define OTA if you want to flash your Arduino over Wi-fi.  If you are like me you don't want to open up your heat pump again if you don't have to.
-
-Note: If you are setting up multiple heat pumps (like I was) be sure to have not only a unique name for the client_id, but also for the topic paths.  Otherwise all of your heatpumps will be sending messages on the same topic.  For example,
-
-```c++
-const char* client_id                   = "Master Bedroom Heatpump"; // Must be unique on the MQTT network
-const char* heatpump_topic              = "Master Bedroom/heatpump";
-const char* heatpump_set_topic          = "Master Bedroom/heatpump/set";
-const char* heatpump_status_topic       = "Master Bedroom/heatpump/status";
-const char* heatpump_timers_topic       = "Master Bedroom/heatpump/timers";
-
-const char* heatpump_debug_topic        = "Master Bedroom/heatpump/debug";
-const char* heatpump_debug_set_topic    = "Master Bedroom/heatpump/debug/set";
-```
-
-Also, follow the instructions of the comment and update the size of MQTT_MAX_PACKET_SIZE to 256 just in case you have issues with the default of 128.
-
-*mitsubishi_heatpump_mqtt_esp8266_esp32.ino*
-
-The implementation code.  I set the below to false since it was causing a significant amount of MQTT traffic.   You can see the MQTT traffic using the [MQTT Fx](http://mqttfx.org/) tool.
-
-```c++
-// debug mode, when true, will send all packets received from the heatpump to topic heatpump_debug_topic
-// this can also be set by sending "on" to heatpump_debug_set_topic
-bool _debugMode = false;
-```
+The features that drew me to gysmo38's code:
+* Easy to deploy - you don't need to modify the code at all.  Just flash it to your device and connect to the access point to configure it for you home wifi and mqtt server.
+* Home Assistant autodiscovery and control with MQTT
+* You can still control the heatpump by connecting over HTTP with a browser
 
 ### Flashing the Arduino 
 
-After configuring the settings for the one or more Arduino chips, flash the devices.  Verify by plugging them into your PC that they connect and show up on your local Wi-fi router.  If you have Home Assistant installed or [MQTT Fx](http://mqttfx.org/) you can verify that the devices are publishing MQTT messages with the default values.  
+1. You don't need to modify any code.  Just open it in Arduino IDE and upload the code to your Arduino.
+2. Verify you can see a new wifi access point with a name "HVAC_XXXX".  From your phone or other wifi device, connect to the AP.
 
+![Access Point of Arduino - Connecting](/assets/images/AP_Setup1.jpg)
 
-### Adding the Mitsubishi MQTT Custom Component to Home Assistant 
+3. After connecting to the AP, the below will appear.  Enter a descriptive name for the device as well as the name and password for your local wifi network then click "Save & Reboot".
 
-Copy mitsubishi_mqtt folder from the below location
+![Access Point of Arduino - Configure](/assets/images/AP_Setup2.jpg)
 
-https://github.com/SwiCago/HeatPump/tree/master/integrations/home-assistant.io/custom_components
+After restarting, the device should be on your local wifi network.  If for some reason this step failed (ex: incorrect SSID/PW) the device will revert back to an access point. It may now require a password to connect to.  The password is the same as the name of the AP (ex: HVAC_XXXX).
 
-to the home assistant config directory
+4. Next you should configure the device to communicate with your MQTT server.  Connect to the local ip address of the arduino (ex: 192.168.1.x) with a browser.  You can log in to your wifi router to see the device and determine the ip address. 
 
-\config\custom_components\mitsubishi_mqtt
+![Setup - Main Page](/assets/images/SetupHP1.jpg)
 
-This contains the climate.py and manifest.json files.
+Click Setup
 
-*customize.yaml*
+![Setup - Setup Page](/assets/images/SetupHP2.jpg)
 
-Add the line below
+Click MQTT
 
-```ruby
-climate.mistubishi_heatpump: {}
-```
+![Setup - MQTT](/assets/images/SetupHP3.jpg)
 
-*configuration.yaml*
+Enter the required information.  Note that the host address is the ip address that Home Assistant is running on.
 
-Add the mqtt and climate entries.  These are mine.
+Click "Save & Reboot"
 
-```ruby
-mqtt:
-  broker: 172.17.0.1
-  port: 1883
-  username: <my mqtt user name>
-  password: <my mqtt password>
-  discovery: true
+If you have Home Assistant installed or [MQTT Fx](http://mqttfx.org/) you can verify that the devices are publishing MQTT messages with the default values.  
 
-climate:
-   - platform: mitsubishi_mqtt
-     name: "Keira Room Heatpump"
-     command_topic: "Keira Room/heatpump/set"
-     temperature_state_topic: "Keira Room/heatpump/status"
-     state_topic: "Keira Room/heatpump"
+After the reboot is complete, click the Status button on the front page.  This will tell you if the connection to the MQTT server was successful.
 
-   - platform: mitsubishi_mqtt
-     name: "Connor Room Heatpump"
-     command_topic: "Connor Room/heatpump/set"
-     temperature_state_topic: "Connor Room/heatpump/status"
-     state_topic: "Connor Room/heatpump"
+![Setup - MQTT Status](/assets/images/SetupHP4.jpg)
 
-   - platform: mitsubishi_mqtt
-     name: "Family Room Heatpump"
-     command_topic: "Family Room/heatpump/set"
-     temperature_state_topic: "Family Room/heatpump/status"
-     state_topic: "Family Room/heatpump"
+5. Finally, you should verify you can control your heatpump!  From the main page click the "Control" button and modify the values.
 
-   - platform: mitsubishi_mqtt
-     name: "Master Room Heatpump"
-     command_topic: "Master Room/heatpump/set"
-     temperature_state_topic: "Master Room/heatpump/status"
-     state_topic: "Master Room/heatpump"
-```
-
-FYI - It wasn't available when I did my install but there is a way to use the built-in MQTT climate component instead of this custom component.  See the additions to the configuration.yaml in the below gist.  I have heard confirmation that this works and is easier than the above custom component solution.
-
-https://gist.github.com/kmdm/29f740e5f36036fb23daba8f2109c359
+![Control Heatpump](/assets/images/SetupHP5.jpg)
 
 ### Adding a Heat Pump in Home Assistant
 
 From the top right menu, select Configure UI.  
 
-![Adding a Heat Pump in Home Assistant - Step 1](/assets/images/homeassistant_addcard0.jpg)
+![Adding a Heat Pump in Home Assistant - Step 1](/assets/images/HA_ConfigureUI.jpg)
 
-If prompted to "take control" say yes.  Next, click the "+" button in the bottom right.  This will open the Card Configuration window. Click the Thermostat entry.
+Next, click the "+" button.  This will open the Card Configuration window. Click the Thermostat entry.
 
-![Adding a Heat Pump in Home Assistant - Step 2](/assets/images/homeassistant_addcard1.jpg)
+![Adding a Heat Pump in Home Assistant - Step 2](/assets/images/HA_AddCard1.jpg)
 
-Give the new thermostat card a name.  Next, select an entity from the drop down.  This is the mqtt device.  Click Save.  
+The Thermostat Card Configuration window will appear
 
-![Adding a Heat Pump in Home Assistant - Step 3](/assets/images/homeassistant_addcard2.jpg)
+![Adding a Heat Pump in Home Assistant - Step 3](/assets/images/HA_AddCard2.jpg)
+
+From the Enitity field, click the dropdown arrow.  You should see an entry for the device you connected to your MQTT server.
+
+![Adding a Heat Pump in Home Assistant - Step 4](/assets/images/HA_AddCard3.jpg)
+
+You may want to give it a more readable name.
+
+![Adding a Heat Pump in Home Assistant - Step 5](/assets/images/HA_AddCard4.jpg)
 
 The device should now be on your home screen.  Play with the settings to verify that the end-to-end communication with the heat pump is working.
+
+![Adding a Heat Pump in Home Assistant - Step 6](/assets/images/HA_AddCard6.jpg)
 
 
