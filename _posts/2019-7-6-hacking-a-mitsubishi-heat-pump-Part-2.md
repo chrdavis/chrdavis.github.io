@@ -86,7 +86,7 @@ Click MQTT
 
 ![Setup - MQTT](/assets/images/SetupHP3.jpg)
 
-Enter the required information.  Note that the host address is the ip address that Home Assistant is running on.
+Enter the required information.  Note that the host address is the ip address that Home Assistant is running on.  Also note - for the friendly name DO NOT INCLUDE SPACES! Home Assistant has issues finding devices over MQTT that have spaces in them.
 
 Click "Save & Reboot"
 
