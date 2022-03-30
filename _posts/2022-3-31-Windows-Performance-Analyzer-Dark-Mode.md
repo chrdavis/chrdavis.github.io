@@ -8,9 +8,9 @@ In January of 2021 I came down with shingles in my left eye.  I attempted to do 
 
 What I would have given at the time for a Dark Mode in WPA.  After recovering I set out to add this.  Turns out the WPA owners were extremely welcoming of an outside developer at Microsoft working in their codebase.  What I initially began as a short side-project turned into something more substantial than I initially anticipated.  Along the way I fixed some other UI issues that had bothered me over the years.  After a few months I was at a point where I put up a PR.
 
-![WPA Light Mode](/assets/images/WWPA_LightMode.jpg)
+![WPA Light Mode](/assets/images/WPA_LightMode.jpg)
 
-![WPA Dark Mode](/assets/images/WWPA_DarkMode.jpg)
+![WPA Dark Mode](/assets/images/WPA_DarkMode.jpg)
 
 	Changes
 	• Removed old Vista-era styling
