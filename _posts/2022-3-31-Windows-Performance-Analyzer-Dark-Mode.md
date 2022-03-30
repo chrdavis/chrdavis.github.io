@@ -6,7 +6,7 @@ In January of 2021 I came down with shingles in my left eye.  I attempted to do 
 
 ![WPA Current High Contrast Black](/assets/images/WPA_HighContrastBlack.jpg)
 
-What I would have given at the time for a Dark Mode in WPA.  After recovering I set out to add this.  Turns out the WPA owners were extremely welcoming of an outside developer at Microsoft working in their codebase.  What I initially began as a short side-project turned into something more substantial than I initially anticipated.  Along the way I fixed some other UI issues that had bothered me over the years.  After a few months I was at a point where I put up a PR.
+What I would have given at the time for a Dark Mode in WPA.  After recovering I set out to add this.  Turns out the WPA owners were extremely welcoming of an outside developer at Microsoft working in their codebase.  What began as a short side-project turned into something more substantial than I initially anticipated.  Along the way I fixed some other UI issues that had bothered me over the years.  After a few months I was at a point where I put up a PR.
 
 ![WPA Light Mode](/assets/images/WPA_LightMode.jpg)
 
