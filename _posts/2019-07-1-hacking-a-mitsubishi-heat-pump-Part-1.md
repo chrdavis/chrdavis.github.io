@@ -16,9 +16,9 @@ The Github project has part suggestions with links to online suppliers.
 
 #### CN105 Cable
 
-I ended up ordering 5 pre-made CN105 cables from the below link.  Since they were only $1.99 I figured getting a spare would be a good idea.
+The site I originally ordered my CN105 cables from is no longer in business.  The below should work.
 
-http://www.usastore.revolectrix.com/Products_2/Cellpro-4s-Charge-Adapters_2/Cellpro-JST-PA-Battery-Pigtail-10-5-Position
+https://m.aliexpress.com/item/1005002904897793.html (select 5P option)
 
 #### Arduino
 
