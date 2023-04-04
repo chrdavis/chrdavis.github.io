@@ -52,7 +52,7 @@ Configure Arduino IDE
 
 * Plug your Arduino into your machine using the micro-USB to USB cable
 * Open Arduino IDE
-* From the Tools menu you will need to select the board that matches your device.  In this case I am using the "LOLIN(WEMOS) D1 R2 & mini" board.  After selecting this it will fill in some defaults.  Note: If you can't find your board you can search for and download it from the Boards Manager.  A quick search online for using your device in Arduino IDE should yield the instructions you need if you are having trouble.  In my case this was included in the esp8266 board package which supports a large number of boards.
+* From the Tools menu you will need to select the board that matches your device.  In this case I am using the "LOLIN(WEMOS) D1 R2 & mini" board.  After selecting this it will fill in some defaults.  Note: If you can't find your board you can search for and download it from the Boards Manager.  In my case this was included in the esp8266 board package which supports a large number of boards.  To get this included in your list of boards to install, go to File > Preferences, add a Boards Manager URL http://arduino.esp8266.com/stable/package_esp8266com_index.json.  Go back to the boards manager and search for esp8266 and install.
 
 ![Arduino IDE](/assets/images/Arduino_IDE1.jpg)
 
