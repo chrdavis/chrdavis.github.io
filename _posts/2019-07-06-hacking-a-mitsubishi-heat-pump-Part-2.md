@@ -74,7 +74,7 @@ The features that drew me to gysmo38's code:
 
 After restarting, the device should be on your local wifi network.  If for some reason this step failed (ex: incorrect SSID/PW) the device will revert back to an access point. It may now require a password to connect to.  The password is the same as the name of the AP (ex: HVAC_XXXX).
 
-4. Next you should configure the device to communicate with your MQTT server.  Connect to the local ip address of the arduino (ex: 192.168.1.x) with a browser.  You can log in to your wifi router to see the device and determine the ip address. 
+4. Next you should configure the device to communicate with your MQTT server.  Connect to the local ip address of the arduino (ex: 192.168.1.20) with a browser.  You can log in to your wifi router to see the device and determine the ip address. 
 
 ![Setup - Main Page](/assets/images/SetupHP1.jpg)
 
