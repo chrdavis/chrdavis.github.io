@@ -54,8 +54,6 @@ https://github.com/gysmo38/mitsubishi2MQTT
 
 Note - the above code will have some dependency libraries required that you will have to download through the Arduino IDE.  These include ArduinoJson and PubSubClient.
 
-*Note PubSubClient.h has a MQTT_MAX_PACKET_SIZE of 128 defined, so either raise it to 256 or use short topic strings*
-
 The features that drew me to gysmo38's code:
 * Easy to deploy - you don't need to modify the code at all.  Just flash it to your device and connect to the access point to configure it for you home wifi and mqtt server.
 * Home Assistant autodiscovery and control with MQTT
