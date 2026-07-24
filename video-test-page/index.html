@@ -147,6 +147,7 @@
     </div>
 
     <div class="stats" id="stats">
+      <div class="k">JS timer probe (1 Hz?)</div><div class="v" id="s-throttle">&ndash;</div>
       <div class="k">Buffering driver</div><div class="v" id="s-driver">&ndash;</div>
       <div class="k">Timer interval (req / actual)</div><div class="v" id="s-interval">&ndash;</div>
       <div class="k">Timer ticks</div><div class="v" id="s-ticks">0</div>
@@ -217,6 +218,25 @@ function fpsLoop() {
   requestAnimationFrame(fpsLoop);
 }
 requestAnimationFrame(fpsLoop);
+
+// Always-on JS-timer throttle probe. A fixed 250 ms setInterval whose *actual*
+// firing interval is measured: under the 1 Hz throttle (fullscreen video +
+// Energy Saver, or a background tab) it stretches to ~1000 ms. This is
+// independent of the engine, so it reports throttling even for the real players.
+const PROBE_MS = 250;
+let probeLast = performance.now();
+let probeIntervals = [];
+let probeActualMs = 0;
+setInterval(() => {
+  const now = performance.now();
+  probeIntervals.push(now - probeLast);
+  probeLast = now;
+  if (probeIntervals.length > 8) probeIntervals.shift();
+  probeActualMs = probeIntervals.reduce((a, b) => a + b, 0) / probeIntervals.length;
+}, PROBE_MS);
+function probeThrottled() {
+  return probeActualMs > 1.6 * PROBE_MS && probeActualMs > 700;
+}
 
 function log(msg) {
   const t = (performance.now() / 1000).toFixed(2).padStart(7);
@@ -658,6 +678,11 @@ function render() {
   const liveStall = stallStartTs ? (performance.now() - stallStartTs) : 0;
 
   const real = currentEngine !== 'synthetic';
+  const probeThr = probeThrottled();
+  const throttleEl = $('s-throttle');
+  throttleEl.textContent = `${PROBE_MS}ms \u2192 ${probeActualMs ? probeActualMs.toFixed(0) : '\u2013'}ms` +
+      (probeThr ? '  \u26A0 THROTTLED (~1 Hz)' : (probeActualMs ? '  \u2014 normal' : ''));
+  throttleEl.className = 'v ' + (probeThr ? 'bad' : 'good');
   $('s-driver').textContent = real ? currentEngine + ' (real library)' : loopKind;
   const intervalEl = $('s-interval');
   if (real) {
@@ -686,6 +711,8 @@ function render() {
   $('s-fps').textContent = rafFps ? rafFps.toFixed(0) + ' fps' : '\u2013';
 
   els.overlay.textContent =
+    `JS timers: ${PROBE_MS}ms \u2192 ${probeActualMs ? probeActualMs.toFixed(0) : '?'}ms` +
+    (probeThr ? '  \u26A0 THROTTLED (~1 Hz)' : '') + '\n' +
     (real
       ? `player: ${currentEngine} (real library)`
       : loopKind === 'event'
