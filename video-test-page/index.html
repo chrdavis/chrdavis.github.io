@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<!--
+  MediaSource (MSE) timer-throttling test page.
+
+  Purpose
+  -------
+  The "ThrottleFullscreenVideoActiveTab" feature throttles a page's throttleable
+  task queues (setInterval / setTimeout based JS timers) to 1 Hz while the tab
+  contains an effectively-fullscreen video AND the browser is in Energy Saver
+  (battery saver) mode.
+
+  In the feature bug, dalecurtis@ asked how this impacts MediaSource playback:
+  a typical adaptive/live player uses a timer to (1) poll playback progress and
+  (2) fetch + append the next media segment. If that timer is throttled to 1 Hz
+  while the player keeps only a small buffer ahead of the playhead (common for
+  low-latency live, e.g. Twitch), buffering may fall behind the playhead and
+  cause rebuffering.
+
+  This page reproduces that scenario. It plays a fragmented MP4 through
+  MediaSource, driving segment appends from a timer whose cadence you control,
+  and reports:
+    * the timer's requested vs. actual firing interval (reveals 1 Hz throttling),
+    * how far the buffer is ahead of the playhead,
+    * rebuffering events ("waiting") and total stalled time,
+    * requestAnimationFrame FPS (rAF is NOT throttled by this feature).
+
+  How to actually trigger the feature's throttling
+  -------------------------------------------------
+    * Chromium: run with
+        --enable-features=ThrottleFullscreenVideoActiveTab
+      enable Energy Saver (chrome://settings/performance, force it on), click
+      "Go Fullscreen", and watch the timer interval jump to ~1000 ms.
+    * Microsoft Edge: enable Energy Saver and go fullscreen (Edge has shipped an
+      equivalent for years).
+    * Quick proxy for any browser: background this tab (switch to another tab).
+      Background tabs already throttle timers to 1 Hz, so you can observe the
+      same buffering dynamics without the feature/Energy Saver.
+
+  Running
+  -------
+  MSE needs the media fetched over HTTP, so serve this folder and open the page:
+      python -m http.server 8000
+      # then browse to http://localhost:8000/mse_energy_saver_throttling.html
+  You can also point "Media URL" at any other fragmented (DASH-style) MP4.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MSE timer-throttling / Energy Saver test</title>
+<style>
+  :root { color-scheme: dark; }
+  body {
+    margin: 0; padding: 16px; background: #14161a; color: #e6e6e6;
+    font: 14px/1.5 system-ui, "Segoe UI", Roboto, sans-serif;
+  }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  .sub { color: #9aa0a6; margin: 0 0 16px; max-width: 900px; }
+  #player {
+    position: relative; width: 640px; max-width: 100%; background: #000;
+    aspect-ratio: 4 / 3; border: 1px solid #333; border-radius: 6px; overflow: hidden;
+  }
+  #player:fullscreen { width: 100vw; height: 100vh; aspect-ratio: auto; border: 0; }
+  video { width: 100%; height: 100%; display: block; background: #000; object-fit: contain; }
+  #overlay {
+    position: absolute; top: 8px; left: 8px; padding: 8px 10px; border-radius: 6px;
+    background: rgba(0,0,0,.62); font-variant-numeric: tabular-nums; pointer-events: none;
+    font-size: 13px; white-space: pre; text-shadow: 0 1px 2px #000;
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; margin: 14px 0; max-width: 900px; }
+  .controls label { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: #9aa0a6; }
+  .controls input, .controls select { background: #1e2127; color: #e6e6e6; border: 1px solid #3a3f47; border-radius: 4px; padding: 5px 7px; font: inherit; }
+  .controls input[type="number"] { width: 92px; }
+  .controls input[type="text"] { width: 320px; }
+  button { background: #2b6cff; color: #fff; border: 0; border-radius: 5px; padding: 8px 14px; font: inherit; cursor: pointer; }
+  button.secondary { background: #333842; }
+  button:disabled { opacity: .5; cursor: default; }
+  .stats { display: grid; grid-template-columns: max-content 1fr; gap: 2px 14px; max-width: 520px;
+           font-variant-numeric: tabular-nums; background: #1a1d22; border: 1px solid #2b2f36; border-radius: 6px; padding: 12px 14px; }
+  .stats .k { color: #9aa0a6; }
+  .stats .v { font-weight: 600; }
+  .warn { color: #ffb454; }
+  .bad { color: #ff6b6b; }
+  .good { color: #57d17a; }
+  #log { margin-top: 14px; max-width: 900px; height: 150px; overflow: auto; background: #0f1115; border: 1px solid #2b2f36;
+         border-radius: 6px; padding: 8px 10px; font: 12px/1.45 ui-monospace, Consolas, monospace; color: #b9c0c8; white-space: pre-wrap; }
+  .row { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; }
+  code { background: #22262d; padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+  <h1>MediaSource timer-throttling / Energy Saver test</h1>
+  <p class="sub">
+    Plays a fragmented MP4 through MediaSource and appends the next segment from a
+    JS timer, mimicking a player that polls playback progress and fetches segments.
+    When that timer is throttled to 1&nbsp;Hz (fullscreen video + Energy Saver with
+    <code>ThrottleFullscreenVideoActiveTab</code>, or simply a backgrounded tab),
+    watch whether the buffer keeps up or the video rebuffers. See the comment at
+    the top of this file for setup details.
+  </p>
+
+  <div class="controls">
+    <label>Engine
+      <select id="engine">
+        <option value="synthetic">synthetic MSE demo (offline)</option>
+        <option value="hls.js">hls.js (real, HLS)</option>
+        <option value="dash.js">dash.js (real, DASH)</option>
+        <option value="shaka">Shaka Player (real, DASH/HLS)</option>
+        <option value="rx-player">rx-player (real, DASH/HLS)</option>
+      </select>
+    </label>
+    <label>Media URL (MP4 fragment, or HLS .m3u8 / DASH .mpd)
+      <input type="text" id="url" value="bear-640x360-v_frag.mp4">
+    </label>
+    <label>Buffering driver
+      <select id="driver">
+        <option value="setInterval">setInterval (throttled by feature)</option>
+        <option value="setTimeout">setTimeout (throttled by feature)</option>
+        <option value="raf">requestAnimationFrame (NOT throttled)</option>
+        <option value="event">event-driven: updateend + timeupdate (realistic, NOT throttled)</option>
+      </select>
+    </label>
+    <label>Timer interval (ms)
+      <input type="number" id="interval" value="250" min="16" step="10">
+    </label>
+    <label>Target buffer ahead (s)
+      <input type="number" id="target" value="6" min="1" step="1">
+    </label>
+    <label>Fragments/append (segment size)
+      <input type="number" id="frags" value="1" min="1" step="1">
+    </label>
+    <label><span>&nbsp;</span>
+      <span><input type="checkbox" id="muted" checked> muted (allows autoplay)</span>
+    </label>
+  </div>
+  <div class="controls">
+    <button id="start">Load &amp; Play</button>
+    <button id="playpause" class="secondary" disabled>Pause</button>
+    <button id="fs" class="secondary" disabled>Go Fullscreen</button>
+    <button id="reset" class="secondary" disabled>Reset stats</button>
+  </div>
+
+  <div class="row">
+    <div id="player">
+      <video id="video" playsinline></video>
+      <div id="overlay">idle</div>
+    </div>
+
+    <div class="stats" id="stats">
+      <div class="k">Buffering driver</div><div class="v" id="s-driver">&ndash;</div>
+      <div class="k">Timer interval (req / actual)</div><div class="v" id="s-interval">&ndash;</div>
+      <div class="k">Timer ticks</div><div class="v" id="s-ticks">0</div>
+      <div class="k">Segment appends</div><div class="v" id="s-appends">0</div>
+      <div class="k">currentTime</div><div class="v" id="s-time">0.00 s</div>
+      <div class="k">Buffered ahead of playhead</div><div class="v" id="s-ahead">0.00 s</div>
+      <div class="k">readyState</div><div class="v" id="s-ready">&ndash;</div>
+      <div class="k">Rebuffering events</div><div class="v" id="s-stalls">0</div>
+      <div class="k">Total stalled time</div><div class="v" id="s-stalltime">0.00 s</div>
+      <div class="k">rAF frame rate</div><div class="v" id="s-fps">&ndash;</div>
+    </div>
+  </div>
+
+  <div id="log"></div>
+
+<script>
+"use strict";
+
+// --- Configuration read from the UI --------------------------------------
+// The MIME/codecs string is auto-detected from the init segment (see
+// detectMimeFromInit), so any fragmented H.264 MP4 works (muxed or video-only).
+let mimeType = '';
+const $ = (id) => document.getElementById(id);
+const els = {
+  engine: $('engine'), url: $('url'), driver: $('driver'), interval: $('interval'), target: $('target'),
+  muted: $('muted'), start: $('start'), playpause: $('playpause'), fs: $('fs'),
+  reset: $('reset'), video: $('video'), overlay: $('overlay'), player: $('player'),
+  log: $('log'), frags: $('frags'),
+};
+
+// --- State ----------------------------------------------------------------
+let mediaSource = null;
+let sourceBuffer = null;
+let initSegment = null;
+let mediaSegments = [];
+let segIndex = 0;
+
+let loopHandle = null;
+let loopKind = 'setInterval';
+let intervalMs = 250;
+let targetBufferSec = 6;
+let fragmentsPerAppend = 1;
+let loopActive = false;
+let currentEngine = 'synthetic';
+let realPlayer = null;      // active hls.js/dash.js/Shaka/rx-player instance
+let realPlayerKind = null;
+
+let appendPending = false;
+let tickCount = 0;
+let appendCount = 0;
+let lastTickTs = 0;
+let recentIntervals = [];
+
+let stallCount = 0;
+let stallStartTs = 0;
+let totalStallMs = 0;
+let gapJumps = 0;
+
+// rAF FPS counter (independent of the buffering loop, to show rAF is unaffected)
+let rafFrames = 0, rafFps = 0, rafLast = performance.now();
+function fpsLoop() {
+  rafFrames++;
+  const t = performance.now();
+  if (t - rafLast >= 1000) {
+    rafFps = (rafFrames * 1000) / (t - rafLast);
+    rafFrames = 0; rafLast = t;
+  }
+  requestAnimationFrame(fpsLoop);
+}
+requestAnimationFrame(fpsLoop);
+
+function log(msg) {
+  const t = (performance.now() / 1000).toFixed(2).padStart(7);
+  els.log.textContent += `[${t}s] ${msg}\n`;
+  els.log.scrollTop = els.log.scrollHeight;
+  // Also echo to the console so it's captured even while fullscreen.
+  console.log(`[mse-test ${t}s] ${msg}`);
+}
+
+// --- Fragmented-MP4 splitter ---------------------------------------------
+// Splits an ISO-BMFF file into an init segment (everything before the first
+// media fragment) and a list of media segments (each delimited by 'styp', or
+// 'moof' when there is no 'styp').
+function splitFragmentedMp4(bytes) {
+  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const boxes = [];
+  let off = 0;
+  while (off + 8 <= bytes.length) {
+    let size = dv.getUint32(off);
+    const type = String.fromCharCode(bytes[off + 4], bytes[off + 5], bytes[off + 6], bytes[off + 7]);
+    if (size === 1) {
+      // 64-bit largesize.
+      const hi = dv.getUint32(off + 8);
+      const lo = dv.getUint32(off + 12);
+      size = hi * 4294967296 + lo;
+    } else if (size === 0) {
+      size = bytes.length - off; // Box extends to end of file.
+    }
+    if (size < 8 || off + size > bytes.length) break;
+    boxes.push({ off, type });
+    off += size;
+  }
+  const hasStyp = boxes.some((b) => b.type === 'styp');
+  const delimiter = hasStyp ? 'styp' : 'moof';
+  const firstMedia = boxes.findIndex((b) => b.type === delimiter);
+  if (firstMedia < 0) {
+    throw new Error('No moof/styp boxes found; this is not a fragmented MP4.');
+  }
+  const init = bytes.slice(0, boxes[firstMedia].off);
+  const segments = [];
+  let segStart = -1;
+  for (let i = firstMedia; i < boxes.length; i++) {
+    if (boxes[i].type === delimiter) {
+      if (segStart >= 0) segments.push(bytes.slice(segStart, boxes[i].off));
+      segStart = boxes[i].off;
+    }
+  }
+  if (segStart >= 0) segments.push(bytes.slice(segStart, bytes.length));
+  return { init, segments };
+}
+
+// Builds a MediaSource MIME/codecs string from the init segment: avcC yields
+// avc1.PPCCLL for H.264 video, and mp4a yields mp4a.40.2 for AAC audio. This
+// lets the page accept any fragmented H.264 MP4 without a hard-coded codec.
+function detectMimeFromInit(init) {
+  const findBox = (name) => {
+    for (let i = 0; i + 8 <= init.length; i++) {
+      if (init[i + 4] === name.charCodeAt(0) && init[i + 5] === name.charCodeAt(1) &&
+          init[i + 6] === name.charCodeAt(2) && init[i + 7] === name.charCodeAt(3)) {
+        return i;
+      }
+    }
+    return -1;
+  };
+  const hex = (n) => n.toString(16).padStart(2, '0');
+  const codecs = [];
+  const avcC = findBox('avcC');
+  if (avcC >= 0) {
+    // avcC payload starts at avcC + 8: [version, profile, compat, level, ...].
+    codecs.push('avc1.' + hex(init[avcC + 9]) + hex(init[avcC + 10]) + hex(init[avcC + 11]));
+  }
+  if (findBox('mp4a') >= 0) codecs.push('mp4a.40.2'); // AAC-LC (the common case).
+  if (!codecs.length) return '';
+  const container = codecs.some((c) => c.startsWith('avc1')) ? 'video/mp4' : 'audio/mp4';
+  return `${container}; codecs="${codecs.join(', ')}"`;
+}
+
+// --- Real player libraries (hls.js / dash.js / Shaka / rx-player) ----------
+// Loaded lazily from a CDN (requires internet). Each owns the <video> element
+// and MSE; we only observe video.buffered + media events for the metrics, so
+// the buffer-ahead / rebuffer readouts work identically to the synthetic mode.
+const CDN = {
+  'hls.js': 'https://cdn.jsdelivr.net/npm/hls.js@1',
+  'dash.js': 'https://cdn.dashjs.org/latest/dash.all.min.js',
+  'shaka': 'https://cdn.jsdelivr.net/npm/shaka-player@4/dist/shaka-player.compiled.js',
+  'rx-player': 'https://cdn.jsdelivr.net/npm/rx-player@4/dist/rx-player.min.js',
+};
+const DEFAULT_URL = {
+  'synthetic': 'bear-640x360-v_frag.mp4',
+  'hls.js': 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
+  'dash.js': 'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd',
+  'shaka': 'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd',
+  'rx-player': 'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd',
+};
+const loadedScripts = {};
+function loadScript(src) {
+  if (loadedScripts[src]) return loadedScripts[src];
+  loadedScripts[src] = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.async = true;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('failed to load ' + src + ' (need internet)'));
+    document.head.appendChild(s);
+  });
+  return loadedScripts[src];
+}
+
+// Hands the <video> element to a real player library and starts playback.
+async function loadRealPlayer(engine, url) {
+  els.video.muted = els.muted.checked;
+  log(`Loading ${engine} from CDN ...`);
+  if (engine === 'hls.js') {
+    await loadScript(CDN['hls.js']);
+    if (window.Hls && Hls.isSupported()) {
+      const hls = new Hls();
+      realPlayer = hls;
+      realPlayerKind = 'hls.js';
+      hls.on(Hls.Events.ERROR, (_e, d) =>
+        log(`hls.js error: ${d.type}/${d.details}${d.fatal ? ' (FATAL)' : ''}`));
+      hls.on(Hls.Events.MANIFEST_PARSED, () => els.video.play().catch(() => {}));
+      hls.loadSource(url);
+      hls.attachMedia(els.video);
+      log('hls.js attached: ' + url);
+    } else if (els.video.canPlayType('application/vnd.apple.mpegurl')) {
+      els.video.src = url;
+      els.video.play().catch(() => {});
+      log('hls.js unsupported here; using native HLS.');
+    } else {
+      log('ERROR: HLS not supported in this browser.');
+    }
+  } else if (engine === 'dash.js') {
+    await loadScript(CDN['dash.js']);
+    const player = dashjs.MediaPlayer().create();
+    realPlayer = player;
+    realPlayerKind = 'dash.js';
+    player.on(dashjs.MediaPlayer.events.ERROR, (e) =>
+      log('dash.js error: ' + (e.error ? (e.error.message || JSON.stringify(e.error)) : 'unknown')));
+    player.initialize(els.video, url, /*autoPlay*/ true);
+    log('dash.js initialized: ' + url);
+  } else if (engine === 'shaka') {
+    await loadScript(CDN['shaka']);
+    shaka.polyfill.installAll();
+    if (!shaka.Player.isBrowserSupported()) {
+      log('ERROR: Shaka Player not supported in this browser.');
+      return;
+    }
+    const player = new shaka.Player();
+    realPlayer = player;
+    realPlayerKind = 'shaka';
+    player.addEventListener('error', (e) =>
+      log('shaka error: code ' + (e.detail ? e.detail.code : '?')));
+    await player.attach(els.video);
+    await player.load(url);
+    els.video.play().catch(() => {});
+    log('shaka loaded: ' + url);
+  } else if (engine === 'rx-player') {
+    await loadScript(CDN['rx-player']);
+    const player = new RxPlayer({ videoElement: els.video });
+    realPlayer = player;
+    realPlayerKind = 'rx-player';
+    player.addEventListener('error', (err) =>
+      log('rx-player error: ' + (err && err.message ? err.message : err)));
+    const transport = /\.m3u8(\?|$)/i.test(url) ? 'hls' : 'dash';
+    player.loadVideo({ url, transport, autoPlay: true });
+    log(`rx-player loadVideo (${transport}): ${url}`);
+  }
+}
+
+// --- MediaSource setup ----------------------------------------------------
+async function loadAndPlay() {
+  teardown();
+  const engine = els.engine.value;
+  currentEngine = engine;
+  const url = els.url.value.trim();
+  intervalMs = Math.max(16, Number(els.interval.value) || 250);
+  targetBufferSec = Math.max(1, Number(els.target.value) || 6);
+  loopKind = els.driver.value;
+  fragmentsPerAppend = Math.max(1, Number(els.frags.value) || 1);
+
+  // Real player libraries own the <video> element and MSE; we just observe.
+  if (engine !== 'synthetic') {
+    resetStats();
+    els.playpause.disabled = false;
+    els.fs.disabled = false;
+    els.reset.disabled = false;
+    els.playpause.textContent = 'Pause';
+    try {
+      await loadRealPlayer(engine, url);
+    } catch (e) {
+      log('ERROR loading ' + engine + ': ' + (e && e.message ? e.message : e));
+    }
+    return;
+  }
+
+  if (!('MediaSource' in window)) { log('ERROR: MediaSource not supported.'); return; }
+
+  log(`Fetching ${url} ...`);
+  let bytes;
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    bytes = new Uint8Array(await resp.arrayBuffer());
+  } catch (e) {
+    log('ERROR: fetch failed: ' + e.message + ' (serve this folder over HTTP; see file header).');
+    return;
+  }
+
+  try {
+    const parts = splitFragmentedMp4(bytes);
+    initSegment = parts.init;
+    mediaSegments = parts.segments;
+  } catch (e) {
+    log('ERROR: ' + e.message);
+    return;
+  }
+  segIndex = 0;
+  mimeType = detectMimeFromInit(initSegment);
+  log(`Parsed init (${initSegment.length} B) + ${mediaSegments.length} media segments; ` +
+      `codecs = ${mimeType || '(unknown)'}`);
+  if (!mimeType || !MediaSource.isTypeSupported(mimeType)) {
+    log('ERROR: codecs not supported by MediaSource: ' + mimeType);
+    return;
+  }
+
+  mediaSource = new MediaSource();
+  els.video.src = URL.createObjectURL(mediaSource);
+  els.video.muted = els.muted.checked;
+  await new Promise((r) => mediaSource.addEventListener('sourceopen', r, { once: true }));
+
+  sourceBuffer = mediaSource.addSourceBuffer(mimeType);
+  // 'sequence' mode places each appended segment right after the previous one,
+  // so we can cycle a short clip into an endless stream (like a live feed).
+  sourceBuffer.mode = 'sequence';
+  sourceBuffer.addEventListener('updateend', () => { appendPending = false; pump(); });
+  sourceBuffer.addEventListener('error', () => log('SourceBuffer error event.'));
+
+  await appendSegment(initSegment);
+  log('Appended init segment. Starting timer-driven buffering loop.');
+
+  resetStats();
+  startLoop();
+  try { await els.video.play(); } catch (e) { log('play() rejected: ' + e.message + ' (click the video to start).'); }
+
+  els.playpause.disabled = false;
+  els.fs.disabled = false;
+  els.reset.disabled = false;
+  els.playpause.textContent = 'Pause';
+}
+
+function appendSegment(seg) {
+  return new Promise((resolve) => {
+    appendPending = true;
+    sourceBuffer.addEventListener('updateend', function done() {
+      sourceBuffer.removeEventListener('updateend', done);
+      resolve();
+    }, { once: true });
+    try {
+      sourceBuffer.appendBuffer(seg);
+    } catch (e) {
+      appendPending = false;
+      log('appendBuffer threw: ' + e.message);
+      resolve();
+    }
+  });
+}
+
+// --- The player "tick": poll progress, fetch/append next segment ----------
+// Seconds of *contiguous* buffered media ahead of the playhead. It uses the
+// buffered range that contains currentTime (not simply the last range): with a
+// gap right after the playhead the video stalls even though a later range may
+// extend much further, so measuring the last range would be misleading.
+function bufferedAhead() {
+  const b = els.video.buffered;
+  if (!b || b.length === 0) return 0;
+  const t = els.video.currentTime;
+  for (let i = 0; i < b.length; i++) {
+    if (t >= b.start(i) - 0.15 && t < b.end(i)) return b.end(i) - t;
+  }
+  return 0; // Playhead is in a gap or past all buffered data.
+}
+
+// Mimics the media pipeline's gap-jumping: if playback is stalled in a small
+// gap that has buffered media just ahead, seek across it. A genuine underrun
+// (caused by timer throttling) has no data ahead, so this never hides a real
+// rebuffer -- it only removes artifacts from looping a clip via 'sequence' mode.
+function maybeJumpGap() {
+  if (currentEngine !== 'synthetic') return; // real players manage their own gaps
+  const b = els.video.buffered;
+  if (!b || b.length === 0) return;
+  if (els.video.paused || els.video.readyState >= 3 /* HAVE_FUTURE_DATA */) return;
+  const t = els.video.currentTime;
+  let inside = false;
+  let nextStart = Infinity;
+  for (let i = 0; i < b.length; i++) {
+    if (t >= b.start(i) && t < b.end(i)) { inside = true; break; }
+    if (b.start(i) > t) nextStart = Math.min(nextStart, b.start(i));
+  }
+  if (!inside && nextStart !== Infinity && nextStart - t < 0.5) {
+    gapJumps++;
+    log(`gap-jump across ${(nextStart - t).toFixed(3)}s (t=${t.toFixed(3)}s)`);
+    els.video.currentTime = nextStart + 0.001;
+  }
+}
+
+// True when we should fetch/append another segment to reach the buffer target.
+function needsMoreBuffer() {
+  return sourceBuffer && !sourceBuffer.updating && !appendPending &&
+         mediaSource && mediaSource.readyState === 'open' &&
+         bufferedAhead() < targetBufferSec;
+}
+
+// Appends one "segment": `fragmentsPerAppend` source fragments concatenated, so
+// a larger value models the multi-second segments real players fetch.
+function appendChunk() {
+  const parts = [];
+  let total = 0;
+  for (let k = 0; k < Math.max(1, fragmentsPerAppend); k++) {
+    const seg = mediaSegments[segIndex % mediaSegments.length];
+    segIndex++;
+    parts.push(seg);
+    total += seg.length;
+  }
+  let chunk = parts[0];
+  if (parts.length > 1) {
+    chunk = new Uint8Array(total);
+    let off = 0;
+    for (const p of parts) { chunk.set(p, off); off += p.length; }
+  }
+  appendCount++;
+  appendPending = true;
+  try {
+    sourceBuffer.appendBuffer(chunk);
+  } catch (e) {
+    appendPending = false;
+    log('appendBuffer threw: ' + e.message);
+  }
+}
+
+// Event-driven fill (the 'event' driver). Chained off 'updateend' and re-armed
+// by 'timeupdate'/'waiting' -- all media-element events that are NOT throttled
+// -- so buffering keeps up even while JS timers are pinned to 1 Hz. This models
+// how real players (dash.js/hls.js/Shaka, YouTube, Twitch) actually buffer.
+function pump() {
+  if (!loopActive || loopKind !== 'event') return;
+  if (needsMoreBuffer()) appendChunk();
+}
+
+// Timer/rAF drivers: measure the (possibly throttled) firing interval and fetch
+// at most one segment per tick -- the pattern that starves under 1 Hz.
+function onTick() {
+  const now = performance.now();
+  const dt = now - lastTickTs;
+  lastTickTs = now;
+  tickCount++;
+  recentIntervals.push(dt);
+  if (recentIntervals.length > 12) recentIntervals.shift();
+  if (needsMoreBuffer()) appendChunk();
+  render();
+}
+
+function startLoop() {
+  stopLoop();
+  loopActive = true;
+  lastTickTs = performance.now();
+  if (loopKind === 'setInterval') {
+    loopHandle = setInterval(onTick, intervalMs);
+  } else if (loopKind === 'setTimeout') {
+    const step = () => { onTick(); loopHandle = setTimeout(step, intervalMs); };
+    loopHandle = setTimeout(step, intervalMs);
+  } else if (loopKind === 'raf') {
+    const step = () => { onTick(); loopHandle = requestAnimationFrame(step); };
+    loopHandle = requestAnimationFrame(step);
+  } else { // 'event': no timer -- buffering is driven by media events. Kick off.
+    pump();
+  }
+}
+
+function stopLoop() {
+  loopActive = false;
+  if (loopHandle == null) return;
+  if (loopKind === 'setInterval') clearInterval(loopHandle);
+  else if (loopKind === 'setTimeout') clearTimeout(loopHandle);
+  else if (loopKind === 'raf') cancelAnimationFrame(loopHandle);
+  loopHandle = null;
+}
+
+function teardown() {
+  stopLoop();
+  if (realPlayer) {
+    try {
+      if (realPlayerKind === 'hls.js') realPlayer.destroy();
+      else if (realPlayerKind === 'dash.js') realPlayer.reset();
+      else if (realPlayerKind === 'shaka') realPlayer.destroy();
+      else if (realPlayerKind === 'rx-player') realPlayer.dispose();
+    } catch (e) { /* ignore */ }
+    realPlayer = null;
+    realPlayerKind = null;
+  }
+  if (mediaSource && mediaSource.readyState === 'open') {
+    try { mediaSource.endOfStream(); } catch (e) { /* ignore */ }
+  }
+  if (els.video.src) {
+    try { URL.revokeObjectURL(els.video.src); } catch (e) { /* not an object URL */ }
+    els.video.removeAttribute('src');
+  }
+  try { els.video.load(); } catch (e) { /* ignore */ }
+  mediaSource = null; sourceBuffer = null; appendPending = false;
+}
+
+// --- Rebuffering detection -----------------------------------------------
+els.video.addEventListener('waiting', () => {
+  if (!stallStartTs) stallStartTs = performance.now();
+  stallCount++;
+  log(`REBUFFER (waiting) #${stallCount} at t=${els.video.currentTime.toFixed(2)}s, ahead=${bufferedAhead().toFixed(2)}s`);
+  pump();
+  render();
+});
+els.video.addEventListener('playing', () => {
+  if (stallStartTs) { totalStallMs += performance.now() - stallStartTs; stallStartTs = 0; }
+});
+els.video.addEventListener('stalled', () => log('media element "stalled" event'));
+// timeupdate is a media-element event (not throttled). Real players use it to
+// re-check buffer health; here it re-arms the event-driven fill as playback
+// drains the buffer below target.
+els.video.addEventListener('timeupdate', () => pump());
+
+// --- Rendering ------------------------------------------------------------
+function avgInterval() {
+  if (!recentIntervals.length) return 0;
+  return recentIntervals.reduce((a, b) => a + b, 0) / recentIntervals.length;
+}
+
+function render() {
+  const actual = avgInterval();
+  const isTimer = loopKind === 'setInterval' || loopKind === 'setTimeout';
+  const throttled = isTimer && actual > 1.6 * intervalMs && actual > 700;
+  const ahead = bufferedAhead();
+  const liveStall = stallStartTs ? (performance.now() - stallStartTs) : 0;
+
+  const real = currentEngine !== 'synthetic';
+  $('s-driver').textContent = real ? currentEngine + ' (real library)' : loopKind;
+  const intervalEl = $('s-interval');
+  if (real) {
+    intervalEl.textContent = 'driven by ' + currentEngine;
+    intervalEl.className = 'v';
+  } else if (loopKind === 'event') {
+    intervalEl.textContent = 'event-driven (not timer-based)';
+    intervalEl.className = 'v good';
+  } else {
+    intervalEl.textContent = `${intervalMs} ms / ${actual ? actual.toFixed(0) : '\u2013'} ms` +
+        (throttled ? '  \u26A0 THROTTLED \u2248 1 Hz' : '');
+    intervalEl.className = 'v' + (throttled ? ' warn' : '');
+  }
+  $('s-ticks').textContent = real ? '\u2013' : (loopKind === 'event') ? 'n/a (event-driven)' : tickCount;
+  $('s-appends').textContent = real ? '\u2013' : appendCount;
+  $('s-time').textContent = els.video.currentTime.toFixed(2) + ' s';
+  const aheadEl = $('s-ahead');
+  aheadEl.textContent = ahead.toFixed(2) + ' s';
+  aheadEl.className = 'v ' + (ahead < 1 ? 'bad' : ahead < targetBufferSec * 0.5 ? 'warn' : 'good');
+  $('s-ready').textContent = els.video.readyState + ' / ' +
+      (mediaSource ? mediaSource.readyState : (real ? currentEngine : '\u2013'));
+  const stallEl = $('s-stalls');
+  stallEl.textContent = stallCount;
+  stallEl.className = 'v ' + (stallCount ? 'bad' : 'good');
+  $('s-stalltime').textContent = ((totalStallMs + liveStall) / 1000).toFixed(2) + ' s';
+  $('s-fps').textContent = rafFps ? rafFps.toFixed(0) + ' fps' : '\u2013';
+
+  els.overlay.textContent =
+    (real
+      ? `player: ${currentEngine} (real library)`
+      : loopKind === 'event'
+      ? 'buffering: event-driven (updateend + timeupdate) \u2014 not throttled'
+      : `timer: ${intervalMs}ms req / ${actual ? actual.toFixed(0) : '?'}ms actual` +
+        (throttled ? '  \u26A0 THROTTLED' : '')) + '\n' +
+    `buffer ahead: ${ahead.toFixed(2)} s${real ? '' : ` (target ${targetBufferSec}s)`}\n` +
+    `rebuffers: ${stallCount}   stalled: ${((totalStallMs + liveStall) / 1000).toFixed(2)} s` +
+    (real ? '' : `   gap-jumps: ${gapJumps}`) + '\n' +
+    `rAF: ${rafFps ? rafFps.toFixed(0) : '?'} fps` + (real ? '' : `   appends: ${appendCount}`);
+}
+
+function resetStats() {
+  tickCount = 0; appendCount = 0; recentIntervals = [];
+  stallCount = 0; stallStartTs = 0; totalStallMs = 0; gapJumps = 0;
+  render();
+}
+
+// A steady repaint so live values (currentTime, buffer ahead) update even when
+// the buffering loop itself is throttled. This uses rAF, which is not throttled.
+(function renderClock() { maybeJumpGap(); render(); requestAnimationFrame(renderClock); })();
+
+// --- UI wiring ------------------------------------------------------------
+els.start.addEventListener('click', loadAndPlay);
+els.reset.addEventListener('click', resetStats);
+els.playpause.addEventListener('click', () => {
+  if (els.video.paused) { els.video.play(); els.playpause.textContent = 'Pause'; }
+  else { els.video.pause(); els.playpause.textContent = 'Resume'; }
+});
+els.fs.addEventListener('click', () => {
+  // Fullscreen the wrapper (video fills it) so the overlay stats stay visible.
+  // The video is still detected as "effectively fullscreen", which is what the
+  // ThrottleFullscreenVideoActiveTab feature keys off of.
+  if (document.fullscreenElement) document.exitFullscreen();
+  else els.player.requestFullscreen().catch((e) => log('fullscreen failed: ' + e.message));
+});
+document.addEventListener('visibilitychange', () => {
+  log('visibilitychange: document is now ' + document.visibilityState +
+      (document.hidden ? ' (background tabs throttle timers to 1 Hz)' : ''));
+});
+els.muted.addEventListener('change', () => { els.video.muted = els.muted.checked; });
+els.engine.addEventListener('change', () => {
+  const engine = els.engine.value;
+  els.url.value = DEFAULT_URL[engine] || '';
+  const real = engine !== 'synthetic';
+  // The synthetic-only controls don't apply to real player libraries.
+  [els.driver, els.interval, els.target, els.frags].forEach((el) => { el.disabled = real; });
+  log(real
+    ? `Engine = ${engine}: loads the real library from a CDN (needs internet) and plays the stream URL. Click "Load & Play".`
+    : 'Engine = synthetic MSE demo (offline).');
+});
+
+log('Ready. Engine "synthetic" = offline MSE demo (setInterval starves when ' +
+    'throttled; event-driven stays smooth). Engines hls.js / dash.js / Shaka / ' +
+    'rx-player load the real library from a CDN and play a real stream (needs ' +
+    'internet); the buffer/rebuffer metrics work the same. Go fullscreen + Energy ' +
+    'Saver (or background the tab) to apply the 1 Hz timer throttle.');
+</script>
+</body>
+</html>
